@@ -1,6 +1,6 @@
 const MODULE_ID = "combat-wall";
 const MODULE_TITLE = "Combat Wall";
-const MODULE_VERSION = "0.2.1";
+const MODULE_VERSION = "0.2.2";
 const CHANNEL_PREFIX = "combat-wall";
 const UPDATE_DEBOUNCE_MS = 80;
 
@@ -9,7 +9,7 @@ let updateTimer = null;
 let lastStateSignature = "";
 
 Hooks.once("init", () => {
-  console.log(`${MODULE_TITLE} | Initialisiert`);
+  console.log(`${MODULE_TITLE} ${MODULE_VERSION} ist aktiv.`);
 });
 
 Hooks.once("ready", () => {
@@ -231,23 +231,24 @@ function serializeCombatant(combatant, turnIndex, currentCombatant) {
 
 function classifyCombatant(combatant, actor, token) {
   const explicitType = combatant.getFlag?.(MODULE_ID, "entryType");
-  if (explicitType === "npc") return "npc";
   if (explicitType === "player" || explicitType === "placeholder") return "placeholder";
 
   if (actor?.hasPlayerOwner || actor?.type === "character") return "player";
 
-  // In Krampe's setup the player entries are deliberately only initiative
-  // placeholders. Foundry V14 may still expose a lightweight token-like object
-  // for such entries, so checking merely for combatant.token is not enough.
-  // A real enemy must resolve to a scene token which itself owns an Actor.
-  const hasRepresentedSceneToken = Boolean(
+  const currentSceneId = globalThis.canvas?.scene?.id ?? game.scenes?.current?.id ?? null;
+  const tokenSceneId = token?.parent?.id ?? token?.scene?.id ?? null;
+  const isNpcActor = Boolean(actor && actor.type === "npc");
+  const hasCurrentSceneToken = Boolean(
     token?.id &&
-    token?.actor &&
-    token?.parent?.documentName === "Scene"
+    token?.parent?.documentName === "Scene" &&
+    currentSceneId &&
+    tokenSceneId === currentSceneId
   );
 
-  if (!hasRepresentedSceneToken) return "placeholder";
-  return "npc";
+  // Flags may identify an entry's intent, but they must never promote a
+  // placeholder or an off-scene combatant into an enemy tile.
+  if (isNpcActor && hasCurrentSceneToken) return "npc";
+  return "placeholder";
 }
 
 function inspectCombatants() {
@@ -255,19 +256,16 @@ function inspectCombatants() {
   const rows = combatants.map((combatant) => {
     const actor = combatant.actor ?? null;
     const token = combatant.token ?? null;
+    const parent = token?.parent ?? null;
     return {
-      name: combatant.name,
-      classifiedAs: classifyCombatant(combatant, actor, token),
-      combatantType: combatant.type ?? null,
-      actorId: combatant.actorId ?? actor?.id ?? null,
-      actorType: actor?.type ?? null,
-      hasPlayerOwner: Boolean(actor?.hasPlayerOwner),
-      tokenId: combatant.tokenId ?? token?.id ?? null,
-      tokenHasActor: Boolean(token?.actor),
-      tokenParentType: token?.parent?.documentName ?? null,
-      tokenX: numberOrNull(token?.x),
-      tokenY: numberOrNull(token?.y),
-      image: combatant.img ?? token?.texture?.src ?? actor?.img ?? null
+      Name: combatant.name ?? actor?.name ?? "Unbekannt",
+      "Erkannte Art": classifyCombatant(combatant, actor, token),
+      "Actor-Typ": actor?.type ?? null,
+      "Actor-ID": combatant.actorId ?? actor?.id ?? null,
+      "Token-ID": combatant.tokenId ?? token?.id ?? null,
+      "Parent-Dokument": parent?.documentName ?? null,
+      "Scene-ID": parent?.documentName === "Scene" ? parent.id : token?.scene?.id ?? null,
+      Tokenposition: token ? `${numberOrNull(token.x)}, ${numberOrNull(token.y)}` : null
     };
   });
   console.table(rows);

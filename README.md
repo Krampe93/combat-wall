@@ -1,36 +1,46 @@
-# Combat Wall 0.1.0
+# Combat Wall 0.2.0
 
 Leichtes externes Kampfdashboard für Foundry VTT 14 und D&D5e 5.3.2.
 
-## Was diese erste Testversion kann
+## Neu in Version 0.2
 
-- eigenständige HTML-Anzeige ohne zweiten vollständigen Foundry-Client
-- aktuelle Runde und aktiven Combatant anzeigen
-- Spieler einzeln und NPCs nach Actor gruppiert in der öffentlichen Zugreihenfolge darstellen
-- einzelne NPCs innerhalb einer Gruppe als Bildsegmente anzeigen
-- Segmente anhand ihrer Tokenposition grob von oben links nach unten rechts anordnen
-- aktive, besiegte und mit Foundry-Status versehene Gegner markieren
-- Änderungen an Initiative, Tokens, Trefferpunkten und Active Effects live übertragen
+- Actor- und tokenlose Combatants werden als **Spieler-Placeholder** erkannt.
+- Spieler-Placeholder bleiben in der öffentlichen Zugreihenfolge.
+- Spieler-Placeholder erscheinen bei ihrem Zug weiterhin groß im Bereich **Aktuell am Zug**.
+- Spieler und Spieler-Placeholder werden nicht mehr als Gegnerkacheln im Hauptbereich dargestellt.
+- Die öffentliche Initiative zeigt bei Spielern keine irreführenden Angaben wie `0/1` mehr.
+- Gegnerkacheln werden dynamisch über die verfügbare Bildschirmfläche verteilt.
+- Bei vier Gegnergruppen entsteht beispielsweise eine Reihe aus vier Kacheln.
+- Das Dashboard benötigt im normalen 16:9-Vollbild kein vertikales Scrollen mehr.
+- Die Debug-Ausgabe ist standardmäßig verborgen. Sie kann mit `&debug=1` an die Dashboard-Adresse angehängt werden.
 
-## Bewusste Grenzen von Version 0.1
+## Bewusste Grenzen
 
-- Das Modul verändert die Foundry-Initiative noch nicht. Es gruppiert nur die Spieleranzeige.
-- Eine eigene Gruppenzuordnung in Foundry gibt es noch nicht als Bedienoberfläche.
-- Die Segmentposition wird nach Tokenkoordinaten neu berechnet und ist noch nicht dauerhaft fixierbar.
-- Bosslayout, Kampfziele und endgültiges Grafikdesign folgen später.
+- Version 0.2 verändert die Foundry-Initiative noch nicht. Gegner werden nur auf dem Dashboard optisch gruppiert.
+- Eigene Gruppennamen und Gruppenzuordnungen besitzen noch keine Bedienoberfläche.
+- Verbündete Beschwörungen ohne Spielerbesitz gelten derzeit weiterhin als NPC-Gruppe.
+- Die Segmentposition wird weiterhin aus den Tokenkoordinaten berechnet.
 
-## Benutzung nach der Installation
+## Installation und Aktualisierung
+
+Manifest-Adresse:
+
+```text
+https://raw.githubusercontent.com/Krampe93/combat-wall/main/module.json
+```
+
+Nach einem Update die Welt neu laden.
+
+## Benutzung
 
 1. Modul in der Welt aktivieren.
 2. Als Spielleiter die Welt öffnen.
 3. Unten links auf **Combat Wall** klicken.
-4. Das neue Fenster auf den 70-Zoll-Bildschirm verschieben.
-5. Dort **Vollbild** anklicken oder F11 verwenden.
-6. Einen Kampf starten und die Initiative durchschalten.
+4. Das Dashboard auf den 70-Zoll-Bildschirm verschieben.
+5. **Vollbild** anklicken oder F11 verwenden.
+6. Encounter starten und die Initiative durchschalten.
 
-## Technischer Test
-
-In der Browserkonsole der Foundry-Spielleiteransicht stehen zusätzlich diese Befehle bereit:
+## Technische Testbefehle
 
 ```js
 CombatWall.getState()
@@ -38,17 +48,3 @@ CombatWall.broadcast()
 CombatWall.openDashboard()
 CombatWall.getDashboardUrl()
 ```
-
-## Installation über Manifest
-
-In Foundry unter **Add-on Modules → Install Module** diese Manifest-Adresse einfügen:
-
-```text
-https://raw.githubusercontent.com/Krampe93/combat-wall/main/module.json
-```
-
-Foundry lädt anschließend das passende ZIP-Paket automatisch.
-
-## Datenschutz im Kampf
-
-Combatants, die im Foundry-Initiativtracker als verborgen markiert sind, werden nicht an das Spieler-Dashboard übertragen.

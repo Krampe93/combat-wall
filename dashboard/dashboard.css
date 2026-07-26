@@ -16,9 +16,10 @@
 
 html,
 body {
-  min-height: 100%;
+  width: 100%;
+  height: 100%;
   margin: 0;
-  overflow-x: hidden;
+  overflow: hidden;
   background:
     radial-gradient(circle at 20% 10%, rgba(98, 59, 28, 0.2), transparent 34rem),
     radial-gradient(circle at 85% 15%, rgba(76, 25, 20, 0.18), transparent 38rem),
@@ -30,16 +31,22 @@ button {
 }
 
 .app {
-  min-height: 100vh;
-  padding: clamp(12px, 1.2vw, 24px);
+  display: grid;
+  grid-template-rows: minmax(180px, 23vh) minmax(0, 1fr);
+  gap: clamp(10px, 1vw, 16px);
+  width: 100%;
+  height: 100vh;
+  padding: clamp(10px, 1vw, 18px);
+  overflow: hidden;
 }
 
 .topbar {
   display: grid;
   grid-template-columns: minmax(340px, 0.8fr) minmax(0, 1.7fr);
   gap: 16px;
-  min-height: 190px;
-  margin-bottom: 16px;
+  min-height: 0;
+  height: 100%;
+  margin-bottom: 0;
 }
 
 .current-panel,
@@ -264,8 +271,10 @@ button {
 }
 
 .empty-state {
-  max-width: 900px;
-  margin: 12vh auto 0;
+  align-self: stretch;
+  width: min(900px, 100%);
+  max-height: 100%;
+  margin: 0 auto;
   padding: clamp(28px, 4vw, 58px);
   text-align: center;
 }
@@ -283,18 +292,21 @@ button {
 
 .groups-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 390px), 1fr));
-  gap: 16px;
-}
-
-.groups-grid[data-count="1"] {
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(var(--group-columns, 1), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--group-rows, 1), minmax(0, 1fr));
+  gap: clamp(8px, 0.9vw, 16px);
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 .group-card {
   position: relative;
   isolation: isolate;
-  min-height: clamp(320px, 50vh, 610px);
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -418,7 +430,13 @@ button {
 }
 
 .debug-panel {
-  margin-top: 16px;
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 100;
+  width: min(720px, 70vw);
+  max-height: 70vh;
+  margin: 0;
   padding: 10px 14px;
   color: #c8c2b8;
 }
@@ -435,8 +453,33 @@ button {
 }
 
 @media (max-width: 1000px) {
+  html,
+  body {
+    overflow: auto;
+  }
+
+  .app {
+    display: block;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
   .topbar {
     grid-template-columns: 1fr;
+    min-height: 360px;
+    margin-bottom: 12px;
+  }
+
+  .groups-grid {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: none !important;
+    height: auto;
+    overflow: visible;
+  }
+
+  .group-card {
+    min-height: 420px;
   }
 
   .current-panel {

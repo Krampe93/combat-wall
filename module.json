@@ -2,13 +2,13 @@
   "id": "combat-wall",
   "type": "module",
   "title": "Combat Wall",
-  "description": "Leichtes externes Kampfdashboard für Foundry VTT. Version 0.1 überträgt Runde, aktiven Combatant, gruppierte Initiative, Gegnerstatus und Tokenpositionen an eine eigenständige HTML-Anzeige.",
+  "description": "Leichtes externes Kampfdashboard für Foundry VTT. Version 0.2 trennt Spieler-Placeholders zuverlässig von Gegnergruppen und verteilt die Gegnerkacheln ohne vertikales Scrollen über den Bildschirm.",
   "authors": [
     {
       "name": "Krampe & OpenAI"
     }
   ],
-  "version": "0.1.0",
+  "version": "0.2.0",
   "compatibility": {
     "minimum": "14",
     "verified": "14",
@@ -34,7 +34,7 @@
   ],
   "url": "https://github.com/Krampe93/combat-wall",
   "manifest": "https://raw.githubusercontent.com/Krampe93/combat-wall/main/module.json",
-  "download": "https://github.com/Krampe93/combat-wall/releases/download/v0.1.0/combat-wall-v0.1.0.zip",
+  "download": "https://github.com/Krampe93/combat-wall/releases/download/v0.2.0/combat-wall-v0.2.0.zip",
   "readme": "README.md",
   "license": "LICENSE"
 }

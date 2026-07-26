@@ -1,5 +1,6 @@
 const MODULE_ID = "combat-wall";
 const MODULE_TITLE = "Combat Wall";
+const MODULE_VERSION = "0.2.0";
 const CHANNEL_PREFIX = "combat-wall";
 const UPDATE_DEBOUNCE_MS = 80;
 
@@ -20,7 +21,7 @@ Hooks.once("ready", () => {
   exposeDebugApi();
   scheduleBroadcast("ready", 0, true);
 
-  ui.notifications?.info(`${MODULE_TITLE} 0.1 ist aktiv.`);
+  ui.notifications?.info(`${MODULE_TITLE} ${MODULE_VERSION} ist aktiv.`);
 });
 
 function initializeChannel() {
@@ -137,8 +138,8 @@ function broadcastState(reason = "update", force = false) {
 function buildDashboardState() {
   const combat = game.combat;
   const base = {
-    schemaVersion: 1,
-    moduleVersion: "0.1.0",
+    schemaVersion: 2,
+    moduleVersion: MODULE_VERSION,
     world: {
       id: game.world?.id ?? null,
       title: game.world?.title ?? "Foundry-Welt"
@@ -187,24 +188,28 @@ function buildDashboardState() {
 function serializeCombatant(combatant, turnIndex, currentCombatant) {
   const actor = combatant.actor ?? null;
   const token = combatant.token ?? null;
-  const isPlayer = Boolean(actor?.hasPlayerOwner || actor?.type === "character");
+  const isPlaceholder = !actor && !token && !combatant.actorId && !combatant.tokenId;
+  const isPlayerEntry = Boolean(isPlaceholder || actor?.hasPlayerOwner || actor?.type === "character");
+  const kind = isPlaceholder ? "placeholder" : isPlayerEntry ? "player" : "npc";
   const hpValue = numberOrNull(foundry.utils.getProperty(actor, "system.attributes.hp.value"));
   const hpMax = numberOrNull(foundry.utils.getProperty(actor, "system.attributes.hp.max"));
   const defeated = Boolean(combatant.defeated || (hpValue !== null && hpValue <= 0));
   const statusSet = actor?.statuses instanceof Set ? actor.statuses : new Set(actor?.statuses ?? []);
 
-  const groupId = isPlayer ? null : resolveGroupId(combatant, actor);
-  const groupName = isPlayer ? null : resolveGroupName(combatant, actor);
+  const groupId = kind === "npc" ? resolveGroupId(combatant, actor) : null;
+  const groupName = kind === "npc" ? resolveGroupName(combatant, actor) : null;
 
   return {
     id: combatant.id,
     actorId: actor?.id ?? null,
     tokenId: token?.id ?? combatant.tokenId ?? null,
     turnIndex,
+    kind,
+    isPlaceholder,
+    isPlayer: isPlayerEntry,
     name: combatant.name ?? actor?.name ?? "Unbekannt",
     image: absoluteAssetUrl(combatant.img ?? token?.texture?.src ?? actor?.img),
     initiative: numberOrNull(combatant.initiative),
-    isPlayer,
     groupId,
     groupName,
     active: combatant.id === currentCombatant?.id,
@@ -246,7 +251,7 @@ function buildNpcGroups(members) {
   const groups = new Map();
 
   for (const member of members) {
-    if (member.isPlayer) continue;
+    if (member.kind !== "npc") continue;
 
     if (!groups.has(member.groupId)) {
       groups.set(member.groupId, {
@@ -287,10 +292,10 @@ function buildPublicInitiative(members, groups, currentCombatantId) {
   const result = [];
 
   for (const member of members) {
-    if (member.isPlayer) {
+    if (member.kind !== "npc") {
       result.push({
         id: `combatant-${member.id}`,
-        kind: "player",
+        kind: member.kind,
         name: member.name,
         image: member.image,
         initiative: member.initiative,
@@ -325,10 +330,10 @@ function buildCurrentEntry(currentCombatant, members, groups) {
   const member = members.find((entry) => entry.id === currentCombatant.id);
   if (!member) return null;
 
-  if (member.isPlayer) {
+  if (member.kind !== "npc") {
     return {
       id: member.id,
-      kind: "player",
+      kind: member.kind,
       name: member.name,
       image: member.image,
       statuses: member.statuses,

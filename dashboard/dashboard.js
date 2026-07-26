@@ -4,6 +4,7 @@
   const params = new URLSearchParams(window.location.search);
   const worldId = params.get("world") || "unknown-world";
   const worldTitle = params.get("title") || "Foundry-Welt";
+  const debugEnabled = params.get("debug") === "1";
   const channel = new BroadcastChannel(`combat-wall:${worldId}`);
 
   const app = document.getElementById("app");
@@ -16,6 +17,9 @@
   const initiativeStrip = document.getElementById("initiative-strip");
   const groupsGrid = document.getElementById("groups-grid");
   const emptyState = document.getElementById("empty-state");
+  const emptyTitle = document.getElementById("empty-title");
+  const emptyCopy = document.getElementById("empty-copy");
+  const debugPanel = document.getElementById("debug-panel");
   const debugOutput = document.getElementById("debug-output");
   const connectionIndicator = document.getElementById("connection-indicator");
   const refreshButton = document.getElementById("refresh-button");
@@ -26,6 +30,7 @@
   let connectionTimer = null;
 
   document.title = `Combat Wall – ${worldTitle}`;
+  debugPanel.hidden = !debugEnabled;
 
   channel.addEventListener("message", (event) => {
     const message = event.data;
@@ -33,7 +38,7 @@
 
     lastReceivedAt = Date.now();
     render(message.payload);
-    debugOutput.textContent = JSON.stringify(message.payload, null, 2);
+    if (debugEnabled) debugOutput.textContent = JSON.stringify(message.payload, null, 2);
     updateConnectionState();
   });
 
@@ -60,18 +65,27 @@
 
   function render(state) {
     app.classList.remove("waiting");
+    const groups = state.groups || [];
+
     renderCurrent(state.current, state.combatActive);
     renderInitiative(state.initiative || []);
-    renderGroups(state.groups || []);
+    renderGroups(groups);
 
-    const activeText = state.combatActive
+    roundLabel.textContent = state.combatActive
       ? `Runde ${state.round || 0}`
       : "Kein aktiver Kampf";
-    roundLabel.textContent = activeText;
 
-    const hasContent = Boolean(state.current || (state.groups || []).length || (state.initiative || []).length);
-    emptyState.hidden = hasContent;
-    groupsGrid.hidden = !hasContent;
+    const showEmptyState = groups.length === 0;
+    emptyState.hidden = !showEmptyState;
+    groupsGrid.hidden = showEmptyState;
+
+    if (!state.combatActive) {
+      emptyTitle.textContent = "Combat Wall wartet auf einen Kampf";
+      emptyCopy.textContent = "Starte einen Encounter in Foundry. Spieler-Placeholders bleiben in der Zugreihenfolge, während hier ausschließlich Gegner erscheinen.";
+    } else if (!groups.length) {
+      emptyTitle.textContent = "Keine Gegner im Encounter";
+      emptyCopy.textContent = "Die Initiative enthält derzeit nur Spieler-Placeholders oder spielergeführte Einträge.";
+    }
   }
 
   function renderCurrent(current, combatActive) {
@@ -79,6 +93,7 @@
 
     if (!current) {
       currentPanel.classList.add("empty");
+      currentPanel.dataset.kind = "none";
       currentImage.removeAttribute("src");
       currentName.textContent = combatActive ? "Kein aktiver Teilnehmer" : "Noch kein aktiver Zug";
       currentMeta.textContent = combatActive ? "Initiative vorhanden, aber noch niemand ausgewählt." : "Warte auf Foundry …";
@@ -86,12 +101,15 @@
     }
 
     currentPanel.classList.remove("empty");
+    currentPanel.dataset.kind = current.kind;
     currentImage.src = current.image;
     currentImage.alt = current.name;
     currentName.textContent = current.name;
 
     if (current.kind === "npc") {
       currentMeta.textContent = `${current.groupName} · ${current.groupPosition ?? "?"}/${current.groupSize ?? "?"}`;
+    } else if (current.kind === "placeholder") {
+      currentMeta.textContent = "Spielerzug · Initiative-Placeholder";
     } else {
       currentMeta.textContent = "Spielerzug";
     }
@@ -103,11 +121,16 @@
 
   function renderInitiative(entries) {
     initiativeStrip.replaceChildren();
+    let activeItem = null;
 
     for (const entry of entries) {
       const item = document.createElement("article");
       item.className = "initiative-entry";
-      if (entry.active) item.classList.add("active");
+      item.dataset.kind = entry.kind;
+      if (entry.active) {
+        item.classList.add("active");
+        activeItem = item;
+      }
       if (entry.defeated) item.classList.add("defeated");
 
       const image = document.createElement("img");
@@ -118,19 +141,33 @@
       const name = document.createElement("strong");
       name.textContent = entry.name;
       const meta = document.createElement("span");
-      meta.textContent = entry.kind === "group"
-        ? `${entry.activeMember ?? 0}/${entry.memberCount ?? 1}`
-        : initiativeText(entry.initiative);
+
+      if (entry.kind === "group") {
+        meta.textContent = entry.active
+          ? `${entry.activeMember ?? 1}/${entry.memberCount ?? 1} am Zug`
+          : opponentCountText(entry.memberCount ?? 1);
+      } else {
+        meta.textContent = "Spieler";
+      }
 
       copy.append(name, meta);
       item.append(image, copy);
       initiativeStrip.append(item);
     }
+
+    if (activeItem) {
+      window.requestAnimationFrame(() => {
+        activeItem.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+      });
+    }
   }
 
   function renderGroups(groups) {
     groupsGrid.replaceChildren();
+    const layout = groupGridLayout(groups.length);
     groupsGrid.dataset.count = String(groups.length);
+    groupsGrid.style.setProperty("--group-columns", String(layout.columns));
+    groupsGrid.style.setProperty("--group-rows", String(layout.rows));
 
     for (const group of groups) {
       groupsGrid.append(createGroupCard(group));
@@ -160,7 +197,7 @@
 
     const memberGrid = document.createElement("div");
     memberGrid.className = "member-grid";
-    const layout = gridLayout(group.members.length);
+    const layout = memberGridLayout(group.members.length);
     memberGrid.style.setProperty("--columns", String(layout.columns));
     memberGrid.style.setProperty("--rows", String(layout.rows));
 
@@ -240,7 +277,7 @@
     return icons[status] || "◆";
   }
 
-  function gridLayout(count) {
+  function memberGridLayout(count) {
     if (count <= 1) return { columns: 1, rows: 1 };
     if (count === 2) return { columns: 2, rows: 1 };
     if (count <= 4) return { columns: 2, rows: 2 };
@@ -249,8 +286,19 @@
     return { columns: 4, rows: Math.ceil(count / 4) };
   }
 
-  function initiativeText(value) {
-    return value === null || value === undefined ? "–" : `Ini ${value}`;
+  function groupGridLayout(count) {
+    if (count <= 1) return { columns: 1, rows: 1 };
+    if (count === 2) return { columns: 2, rows: 1 };
+    if (count === 3) return { columns: 3, rows: 1 };
+    if (count === 4) return { columns: 4, rows: 1 };
+    if (count <= 6) return { columns: 3, rows: 2 };
+    if (count <= 8) return { columns: 4, rows: 2 };
+    if (count <= 9) return { columns: 3, rows: 3 };
+    return { columns: 4, rows: Math.ceil(count / 4) };
+  }
+
+  function opponentCountText(count) {
+    return count === 1 ? "1 Gegner" : `${count} Gegner`;
   }
 
   function updateConnectionState() {

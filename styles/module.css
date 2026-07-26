@@ -1,0 +1,25 @@
+#combat-wall-open {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 10000;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 38px;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid rgba(214, 177, 91, 0.8);
+  border-radius: 7px;
+  background: rgba(20, 18, 17, 0.94);
+  color: #f4e7c4;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+#combat-wall-open:hover,
+#combat-wall-open:focus-visible {
+  border-color: #f4cf74;
+  background: rgba(44, 35, 24, 0.98);
+  color: #fff7df;
+}

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="40%" r="70%">
+      <stop offset="0" stop-color="#35291d"/>
+      <stop offset="1" stop-color="#0b0b0b"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#g)"/>
+  <circle cx="600" cy="360" r="180" fill="none" stroke="#c49a4a" stroke-width="18" opacity=".5"/>
+  <path d="M500 440c40-170 160-170 200 0M530 310l-55-70m195 70l55-70" fill="none" stroke="#c49a4a" stroke-width="24" stroke-linecap="round" opacity=".55"/>
+  <text x="600" y="630" text-anchor="middle" fill="#e8d9b5" font-family="serif" font-size="62">COMBAT WALL</text>
+</svg>

@@ -2,13 +2,13 @@
   "id": "combat-wall",
   "type": "module",
   "title": "Combat Wall",
-  "description": "Leichtes externes Kampfdashboard für Foundry VTT. Version 0.2 trennt Spieler-Placeholders zuverlässig von Gegnergruppen und verteilt die Gegnerkacheln ohne vertikales Scrollen über den Bildschirm.",
+  "description": "Leichtes externes Kampfdashboard für Foundry VTT. Version 0.2.1 erkennt Spieler-Placeholders über das Fehlen eines echten Actor-Tokens und zeigt nur reale Gegner-Tokens als Gegnerkacheln.",
   "authors": [
     {
       "name": "Krampe & OpenAI"
     }
   ],
-  "version": "0.2.0",
+  "version": "0.2.1",
   "compatibility": {
     "minimum": "14",
     "verified": "14",
@@ -34,7 +34,7 @@
   ],
   "url": "https://github.com/Krampe93/combat-wall",
   "manifest": "https://raw.githubusercontent.com/Krampe93/combat-wall/main/module.json",
-  "download": "https://github.com/Krampe93/combat-wall/releases/download/v0.2.0/combat-wall-v0.2.0.zip",
+  "download": "https://github.com/Krampe93/combat-wall/releases/download/v0.2.1/combat-wall-v0.2.1.zip",
   "readme": "README.md",
   "license": "LICENSE"
 }

@@ -1,25 +1,25 @@
-# Combat Wall 0.2.0
+# Combat Wall 0.2.1
 
 Leichtes externes Kampfdashboard für Foundry VTT 14 und D&D5e 5.3.2.
 
-## Neu in Version 0.2
+## Korrektur in Version 0.2.1
 
-- Actor- und tokenlose Combatants werden als **Spieler-Placeholder** erkannt.
-- Spieler-Placeholder bleiben in der öffentlichen Zugreihenfolge.
-- Spieler-Placeholder erscheinen bei ihrem Zug weiterhin groß im Bereich **Aktuell am Zug**.
-- Spieler und Spieler-Placeholder werden nicht mehr als Gegnerkacheln im Hauptbereich dargestellt.
-- Die öffentliche Initiative zeigt bei Spielern keine irreführenden Angaben wie `0/1` mehr.
-- Gegnerkacheln werden dynamisch über die verfügbare Bildschirmfläche verteilt.
-- Bei vier Gegnergruppen entsteht beispielsweise eine Reihe aus vier Kacheln.
-- Das Dashboard benötigt im normalen 16:9-Vollbild kein vertikales Scrollen mehr.
-- Die Debug-Ausgabe ist standardmäßig verborgen. Sie kann mit `&debug=1` an die Dashboard-Adresse angehängt werden.
+Foundry V14 liefert bei manuell angelegten Initiative-Platzhaltern teilweise trotzdem ein leichtes Token-Objekt. Deshalb war die erste Erkennung in 0.2.0 zu streng und behandelte Orsik, Ziggs, Lichtwölkchen, Zane und Nova weiterhin als Gegnergruppen.
+
+Version 0.2.1 wertet einen Eintrag nur dann als Gegner, wenn er auf einen echten Szenen-Token mit eigenem Actor verweist.
+
+- Spieler-Placeholder bleiben in der Zugreihenfolge.
+- Der aktive Placeholder erscheint weiterhin oben links.
+- Placeholder erzeugen keine Gegnerkacheln.
+- Nur echte Gegner-Tokens erscheinen im Hauptbereich.
+- Spieler zeigen in der Zugleiste ihre Initiative statt `0/1`.
+- Das Vollbildlayout aus 0.2.0 bleibt erhalten.
 
 ## Bewusste Grenzen
 
-- Version 0.2 verändert die Foundry-Initiative noch nicht. Gegner werden nur auf dem Dashboard optisch gruppiert.
-- Eigene Gruppennamen und Gruppenzuordnungen besitzen noch keine Bedienoberfläche.
-- Verbündete Beschwörungen ohne Spielerbesitz gelten derzeit weiterhin als NPC-Gruppe.
-- Die Segmentposition wird weiterhin aus den Tokenkoordinaten berechnet.
+- Das Modul verändert die Foundry-Initiative noch nicht.
+- NPCs, die absichtlich ohne echten Szenen-Token in den Kampf eingetragen werden, gelten zunächst ebenfalls als Placeholder.
+- Eine manuelle Spieler-/Gegner-Umschaltung folgt später als Absicherung.
 
 ## Installation und Aktualisierung
 
@@ -29,16 +29,7 @@ Manifest-Adresse:
 https://raw.githubusercontent.com/Krampe93/combat-wall/main/module.json
 ```
 
-Nach einem Update die Welt neu laden.
-
-## Benutzung
-
-1. Modul in der Welt aktivieren.
-2. Als Spielleiter die Welt öffnen.
-3. Unten links auf **Combat Wall** klicken.
-4. Das Dashboard auf den 70-Zoll-Bildschirm verschieben.
-5. **Vollbild** anklicken oder F11 verwenden.
-6. Encounter starten und die Initiative durchschalten.
+Nach dem Update die Welt und das Dashboard neu laden.
 
 ## Technische Testbefehle
 
@@ -47,4 +38,7 @@ CombatWall.getState()
 CombatWall.broadcast()
 CombatWall.openDashboard()
 CombatWall.getDashboardUrl()
+CombatWall.inspectCombatants()
 ```
+
+`CombatWall.inspectCombatants()` gibt in der Browserkonsole eine Tabelle mit der erkannten Art jedes Initiativeeintrags aus.

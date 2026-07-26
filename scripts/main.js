@@ -1,6 +1,6 @@
 const MODULE_ID = "combat-wall";
 const MODULE_TITLE = "Combat Wall";
-const MODULE_VERSION = "0.2.0";
+const MODULE_VERSION = "0.2.1";
 const CHANNEL_PREFIX = "combat-wall";
 const UPDATE_DEBOUNCE_MS = 80;
 
@@ -73,7 +73,8 @@ function exposeDebugApi() {
     openDashboard,
     getState: buildDashboardState,
     broadcast: () => broadcastState("manual", true),
-    getDashboardUrl
+    getDashboardUrl,
+    inspectCombatants
   };
 }
 
@@ -188,9 +189,9 @@ function buildDashboardState() {
 function serializeCombatant(combatant, turnIndex, currentCombatant) {
   const actor = combatant.actor ?? null;
   const token = combatant.token ?? null;
-  const isPlaceholder = !actor && !token && !combatant.actorId && !combatant.tokenId;
-  const isPlayerEntry = Boolean(isPlaceholder || actor?.hasPlayerOwner || actor?.type === "character");
-  const kind = isPlaceholder ? "placeholder" : isPlayerEntry ? "player" : "npc";
+  const kind = classifyCombatant(combatant, actor, token);
+  const isPlaceholder = kind === "placeholder";
+  const isPlayerEntry = kind !== "npc";
   const hpValue = numberOrNull(foundry.utils.getProperty(actor, "system.attributes.hp.value"));
   const hpMax = numberOrNull(foundry.utils.getProperty(actor, "system.attributes.hp.max"));
   const defeated = Boolean(combatant.defeated || (hpValue !== null && hpValue <= 0));
@@ -226,6 +227,51 @@ function serializeCombatant(combatant, turnIndex, currentCombatant) {
       elevation: numberOrNull(token?.elevation)
     }
   };
+}
+
+function classifyCombatant(combatant, actor, token) {
+  const explicitType = combatant.getFlag?.(MODULE_ID, "entryType");
+  if (explicitType === "npc") return "npc";
+  if (explicitType === "player" || explicitType === "placeholder") return "placeholder";
+
+  if (actor?.hasPlayerOwner || actor?.type === "character") return "player";
+
+  // In Krampe's setup the player entries are deliberately only initiative
+  // placeholders. Foundry V14 may still expose a lightweight token-like object
+  // for such entries, so checking merely for combatant.token is not enough.
+  // A real enemy must resolve to a scene token which itself owns an Actor.
+  const hasRepresentedSceneToken = Boolean(
+    token?.id &&
+    token?.actor &&
+    token?.parent?.documentName === "Scene"
+  );
+
+  if (!hasRepresentedSceneToken) return "placeholder";
+  return "npc";
+}
+
+function inspectCombatants() {
+  const combatants = Array.from(game.combat?.combatants?.contents ?? []);
+  const rows = combatants.map((combatant) => {
+    const actor = combatant.actor ?? null;
+    const token = combatant.token ?? null;
+    return {
+      name: combatant.name,
+      classifiedAs: classifyCombatant(combatant, actor, token),
+      combatantType: combatant.type ?? null,
+      actorId: combatant.actorId ?? actor?.id ?? null,
+      actorType: actor?.type ?? null,
+      hasPlayerOwner: Boolean(actor?.hasPlayerOwner),
+      tokenId: combatant.tokenId ?? token?.id ?? null,
+      tokenHasActor: Boolean(token?.actor),
+      tokenParentType: token?.parent?.documentName ?? null,
+      tokenX: numberOrNull(token?.x),
+      tokenY: numberOrNull(token?.y),
+      image: combatant.img ?? token?.texture?.src ?? actor?.img ?? null
+    };
+  });
+  console.table(rows);
+  return rows;
 }
 
 function resolveGroupId(combatant, actor) {

@@ -28,6 +28,8 @@
   let lastReceivedAt = 0;
   let requestTimer = null;
   let connectionTimer = null;
+  let lastInitiativeEntries = [];
+  let initiativeRenderFrame = null;
 
   document.title = `Combat Wall – ${worldTitle}`;
   debugPanel.hidden = !debugEnabled;
@@ -45,6 +47,8 @@
   refreshButton.addEventListener("click", requestState);
   fullscreenButton.addEventListener("click", toggleFullscreen);
   document.addEventListener("fullscreenchange", updateFullscreenButton);
+  const initiativeResizeObserver = new ResizeObserver(() => scheduleInitiativeRender());
+  initiativeResizeObserver.observe(initiativeStrip);
 
   requestState();
   requestTimer = window.setInterval(requestState, 5000);
@@ -53,6 +57,8 @@
   window.addEventListener("beforeunload", () => {
     window.clearInterval(requestTimer);
     window.clearInterval(connectionTimer);
+    window.cancelAnimationFrame(initiativeRenderFrame);
+    initiativeResizeObserver.disconnect();
     channel.close();
   });
 
@@ -120,17 +126,24 @@
   }
 
   function renderInitiative(entries) {
-    initiativeStrip.replaceChildren();
-    let activeItem = null;
+    lastInitiativeEntries = entries;
+    scheduleInitiativeRender();
+  }
 
-    for (const entry of entries) {
+  function scheduleInitiativeRender() {
+    window.cancelAnimationFrame(initiativeRenderFrame);
+    initiativeRenderFrame = window.requestAnimationFrame(renderUpcomingInitiative);
+  }
+
+  function renderUpcomingInitiative() {
+    initiativeStrip.replaceChildren();
+    const upcomingEntries = rotateAfterActive(lastInitiativeEntries);
+    const visibleCount = initiativeCapacity(initiativeStrip.clientWidth);
+
+    for (const entry of upcomingEntries.slice(0, visibleCount)) {
       const item = document.createElement("article");
       item.className = "initiative-entry";
       item.dataset.kind = entry.kind;
-      if (entry.active) {
-        item.classList.add("active");
-        activeItem = item;
-      }
       if (entry.defeated) item.classList.add("defeated");
 
       const image = document.createElement("img");
@@ -143,9 +156,7 @@
       const meta = document.createElement("span");
 
       if (entry.kind === "group") {
-        meta.textContent = entry.active
-          ? `${entry.activeMember ?? 1}/${entry.memberCount ?? 1} am Zug`
-          : opponentCountText(entry.memberCount ?? 1);
+        meta.textContent = opponentCountText(entry.memberCount ?? 1);
       } else {
         meta.textContent = "Spieler";
       }
@@ -154,12 +165,22 @@
       item.append(image, copy);
       initiativeStrip.append(item);
     }
+  }
 
-    if (activeItem) {
-      window.requestAnimationFrame(() => {
-        activeItem.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
-      });
-    }
+  function rotateAfterActive(entries) {
+    if (!entries.length) return [];
+    const activeIndex = entries.findIndex((entry) => entry.active);
+    if (activeIndex < 0) return entries;
+    return entries
+      .slice(activeIndex + 1)
+      .concat(entries.slice(0, activeIndex));
+  }
+
+  function initiativeCapacity(availableWidth) {
+    const styles = getComputedStyle(initiativeStrip);
+    const gap = Number.parseFloat(styles.columnGap || styles.gap) || 0;
+    const minimumEntryWidth = 185;
+    return Math.max(0, Math.floor((availableWidth + gap) / (minimumEntryWidth + gap)));
   }
 
   function renderGroups(groups) {

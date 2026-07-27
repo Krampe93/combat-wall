@@ -216,9 +216,8 @@ button {
   align-items: stretch;
   gap: 10px;
   min-width: 0;
-  overflow-x: auto;
-  padding: 2px 2px 7px;
-  scrollbar-width: thin;
+  overflow: hidden;
+  padding: 2px;
 }
 
 .initiative-entry {
@@ -232,13 +231,19 @@ button {
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.045);
   opacity: 0.84;
+  animation: initiative-slide-in 180ms ease-out both;
 }
 
-.initiative-entry.active {
-  border-color: var(--gold-bright);
-  background: rgba(159, 112, 36, 0.26);
-  box-shadow: 0 0 20px rgba(215, 173, 89, 0.25);
-  opacity: 1;
+@keyframes initiative-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+
+  to {
+    opacity: 0.84;
+    transform: translateX(0);
+  }
 }
 
 .initiative-entry.defeated {

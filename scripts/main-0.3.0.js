@@ -1,6 +1,6 @@
 const MODULE_ID = "combat-wall";
 const MODULE_TITLE = "Combat Wall";
-const MODULE_VERSION = "0.2.2";
+const MODULE_VERSION = "0.3.0";
 const CHANNEL_PREFIX = "combat-wall";
 const UPDATE_DEBOUNCE_MS = 80;
 

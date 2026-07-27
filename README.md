@@ -1,16 +1,14 @@
-# Combat Wall 0.2.2
+# Combat Wall 0.3.0
 
 Leichtes externes Kampfdashboard für Foundry VTT 14 und D&D5e 5.3.2.
 
-## Änderung in Version 0.2.2
+## Änderungen in Version 0.3.0
 
-Foundry beziehungsweise der Browser konnte nach einem Update weiterhin die alte `scripts/main.js` aus dem Cache ausführen, obwohl die Modulverwaltung bereits Version 0.2.1 anzeigte. Version 0.2.2 verwendet deshalb den neuen Dateinamen:
-
-```text
-scripts/main-0.2.2.js
-```
-
-Damit muss der Browser den aktuellen Code laden.
+- Der aktive Teilnehmer steht ausschließlich groß links.
+- Rechts erscheinen nur die folgenden Teilnehmer, die in den verfügbaren Platz passen.
+- Die Initiativeleiste besitzt keinen horizontalen Scrollbalken.
+- Nach einem Zugwechsel rückt der neue aktive Teilnehmer nach links; die folgenden Züge werden zyklisch neu angeordnet.
+- Spieler-Placeholder und Gegnergruppen aus Version 0.2.2 bleiben unverändert erhalten.
 
 ## Diagnose
 

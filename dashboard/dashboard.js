@@ -113,7 +113,7 @@
     currentName.textContent = current.name;
 
     if (current.kind === "npc") {
-      currentMeta.textContent = `${current.groupName} · ${current.groupPosition ?? "?"}/${current.groupSize ?? "?"}`;
+      currentMeta.textContent = `${current.groupName} · ${current.groupPosition ?? "?"} von ${current.groupSize ?? "?"}`;
     } else if (current.kind === "placeholder") {
       currentMeta.textContent = "Spielerzug · Initiative-Placeholder";
     } else {
@@ -187,11 +187,21 @@
     groupsGrid.replaceChildren();
     const layout = groupGridLayout(groups.length);
     groupsGrid.dataset.count = String(groups.length);
-    groupsGrid.style.setProperty("--group-columns", String(layout.columns));
     groupsGrid.style.setProperty("--group-rows", String(layout.rows));
 
-    for (const group of groups) {
-      groupsGrid.append(createGroupCard(group));
+    const rows = chunkGroups(groups, layout.columns);
+    for (const row of rows) {
+      const rowElement = document.createElement("div");
+      rowElement.className = "group-row";
+      for (const group of row) {
+        const card = createGroupCard(group);
+        card.style.setProperty(
+          "--layout-weight",
+          String(normalizedLayoutWeight(group.effectiveLayoutWeight))
+        );
+        rowElement.append(card);
+      }
+      groupsGrid.append(rowElement);
     }
   }
 
@@ -222,23 +232,34 @@
     memberGrid.style.setProperty("--columns", String(layout.columns));
     memberGrid.style.setProperty("--rows", String(layout.rows));
 
-    group.members.forEach((member, index) => {
-      memberGrid.append(createMemberSegment(member, index + 1));
+    group.members.forEach((member) => {
+      memberGrid.append(createMemberSegment(member));
     });
 
     card.append(background, shade, header, memberGrid);
     return card;
   }
 
-  function createMemberSegment(member, displayNumber) {
+  function createMemberSegment(member) {
     const segment = document.createElement("section");
     segment.className = "member-segment";
+    segment.dataset.combatantId = member.id;
     if (member.active) segment.classList.add("active");
     if (member.defeated) segment.classList.add("defeated");
 
-    const number = document.createElement("span");
-    number.className = "member-number";
-    number.textContent = String(displayNumber);
+    const direction = document.createElement("span");
+    direction.className = "direction-indicator";
+    direction.dataset.state = member.directionState || "unavailable";
+    if (member.directionState === "center") {
+      direction.textContent = "◎";
+      direction.setAttribute("aria-label", "Nahe der Szenenmitte");
+    } else if (member.directionState === "direction" && Number.isFinite(member.directionAngle)) {
+      direction.textContent = "➤";
+      direction.style.setProperty("--direction-angle", `${member.directionAngle}deg`);
+      direction.setAttribute("aria-label", "Richtung von der Szenenmitte");
+    } else {
+      direction.hidden = true;
+    }
 
     const labels = document.createElement("div");
     labels.className = "member-statuses";
@@ -250,7 +271,7 @@
     state.className = "member-state";
     state.textContent = member.defeated ? "Besiegt" : member.active ? "Am Zug" : "";
 
-    segment.append(number, labels, state);
+    segment.append(direction, labels, state);
     return segment;
   }
 
@@ -316,6 +337,20 @@
     if (count <= 8) return { columns: 4, rows: 2 };
     if (count <= 9) return { columns: 3, rows: 3 };
     return { columns: 4, rows: Math.ceil(count / 4) };
+  }
+
+  function chunkGroups(groups, columns) {
+    const rows = [];
+    for (let index = 0; index < groups.length; index += columns) {
+      rows.push(groups.slice(index, index + columns));
+    }
+    return rows;
+  }
+
+  function normalizedLayoutWeight(value) {
+    const weight = Number(value);
+    if (!Number.isFinite(weight)) return 1;
+    return Math.min(2.3, Math.max(0.65, weight));
   }
 
   function opponentCountText(count) {

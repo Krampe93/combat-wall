@@ -1,11 +1,23 @@
 const MODULE_ID = "combat-wall";
 const MODULE_TITLE = "Combat Wall";
-const MODULE_VERSION = "0.3.0";
+const MODULE_VERSION = "0.4.0";
 const CHANNEL_PREFIX = "combat-wall";
 const UPDATE_DEBOUNCE_MS = 80;
+const GROUP_SYNC_DEBOUNCE_MS = 160;
+const CENTER_TARGET_THRESHOLD = 0.035;
+const SIZE_WEIGHTS = Object.freeze({
+  tiny: 0.65,
+  small: 0.8,
+  medium: 1,
+  large: 1.4,
+  huge: 1.8,
+  gargantuan: 2.3
+});
 
 let channel = null;
 let updateTimer = null;
+let groupSyncTimer = null;
+let groupSyncRunning = false;
 let lastStateSignature = "";
 
 Hooks.once("init", () => {
@@ -19,7 +31,7 @@ Hooks.once("ready", () => {
   installDashboardButton();
   registerUpdateHooks();
   exposeDebugApi();
-  scheduleBroadcast("ready", 0, true);
+  scheduleCombatRefresh("ready", 0, true);
 
   ui.notifications?.info(`${MODULE_TITLE} ${MODULE_VERSION} ist aktiv.`);
 });
@@ -53,8 +65,10 @@ function registerUpdateHooks() {
     "updateCombat",
     "deleteCombat",
     "createCombatant",
-    "updateCombatant",
     "deleteCombatant",
+    "createCombatantGroup",
+    "updateCombatantGroup",
+    "deleteCombatantGroup",
     "updateActor",
     "createActiveEffect",
     "updateActiveEffect",
@@ -64,8 +78,18 @@ function registerUpdateHooks() {
   ];
 
   for (const hookName of hookNames) {
-    Hooks.on(hookName, () => scheduleBroadcast(hookName));
+    Hooks.on(hookName, () => scheduleCombatRefresh(hookName));
   }
+
+  Hooks.on("updateCombatant", (combatant, changed, options) => {
+    const initiative = numberOrNull(changed?.initiative);
+    const preferredInitiatives = new Map();
+    if (!options?.combatWallGroupSync && initiative !== null) {
+      const groupId = resolveCombatantGroupId(combatant);
+      if (groupId) preferredInitiatives.set(groupId, initiative);
+    }
+    scheduleCombatRefreshWithInitiatives("updateCombatant", preferredInitiatives);
+  });
 }
 
 function exposeDebugApi() {
@@ -73,6 +97,7 @@ function exposeDebugApi() {
     openDashboard,
     getState: buildDashboardState,
     broadcast: () => broadcastState("manual", true),
+    synchronizeGroups: () => synchronizeNpcGroups(game.combat),
     getDashboardUrl,
     inspectCombatants
   };
@@ -120,6 +145,156 @@ function scheduleBroadcast(reason = "update", delay = UPDATE_DEBOUNCE_MS, force 
   updateTimer = window.setTimeout(() => broadcastState(reason, force), delay);
 }
 
+function scheduleCombatRefresh(reason = "update", delay = GROUP_SYNC_DEBOUNCE_MS, force = false) {
+  window.clearTimeout(groupSyncTimer);
+  groupSyncTimer = window.setTimeout(async () => {
+    await synchronizeNpcGroups(game.combat);
+    scheduleBroadcast(reason, 0, force);
+  }, delay);
+}
+
+function scheduleCombatRefreshWithInitiatives(reason, preferredInitiatives) {
+  window.clearTimeout(groupSyncTimer);
+  groupSyncTimer = window.setTimeout(async () => {
+    await synchronizeNpcGroups(game.combat, preferredInitiatives);
+    scheduleBroadcast(reason, 0);
+  }, GROUP_SYNC_DEBOUNCE_MS);
+}
+
+async function synchronizeNpcGroups(combat, preferredInitiatives = new Map()) {
+  if (!combat || groupSyncRunning || !game.user?.isGM) return;
+  const combatSceneId = combat.scene?.id ?? combat.scene ?? null;
+  const currentSceneId = globalThis.canvas?.scene?.id ?? game.scenes?.current?.id ?? null;
+  if (combatSceneId && currentSceneId && combatSceneId !== currentSceneId) return;
+  groupSyncRunning = true;
+
+  try {
+    const combatants = Array.from(combat.combatants?.contents ?? []);
+    const npcBuckets = new Map();
+
+    for (const combatant of combatants) {
+      if (classifyCombatant(combatant, combatant.actor, combatant.token) !== "npc") continue;
+      const groupId = resolveCombatantGroupId(combatant);
+      if (!groupId) continue;
+      if (!npcBuckets.has(groupId)) npcBuckets.set(groupId, []);
+      npcBuckets.get(groupId).push(combatant);
+    }
+
+    const managedGroups = Array.from(combat.groups?.contents ?? [])
+      .filter((group) => group.getFlag?.(MODULE_ID, "managed"));
+    const managedByKey = new Map(
+      managedGroups.map((group) => [group.getFlag(MODULE_ID, "groupId"), group])
+    );
+
+    const missingGroups = [];
+    for (const [groupId, members] of npcBuckets) {
+      if (members.length < 2) continue;
+      if (managedByKey.has(groupId)) continue;
+      const representative = members[0];
+      missingGroups.push({
+        type: "base",
+        name: resolveGroupName(representative, representative.actor),
+        img: representative.img ?? representative.actor?.img,
+        initiative: preferredInitiatives.get(groupId) ?? firstInitiative(members),
+        flags: {
+          [MODULE_ID]: {
+            managed: true,
+            groupId
+          }
+        }
+      });
+    }
+
+    if (missingGroups.length) {
+      const created = await combat.createEmbeddedDocuments("CombatantGroup", missingGroups, {
+        combatWallGroupSync: true
+      });
+      for (const group of created) {
+        managedByKey.set(group.getFlag(MODULE_ID, "groupId"), group);
+      }
+    }
+
+    const groupUpdates = [];
+    const combatantUpdates = [];
+    for (const [groupId, members] of npcBuckets) {
+      if (members.length < 2) continue;
+      const group = managedByKey.get(groupId);
+      if (!group) continue;
+
+      const sharedInitiative =
+        preferredInitiatives.get(groupId) ??
+        numberOrNull(group.initiative) ??
+        firstInitiative(members);
+      if (sharedInitiative !== null && numberOrNull(group.initiative) !== sharedInitiative) {
+        groupUpdates.push({ _id: group.id, initiative: sharedInitiative });
+      }
+
+      for (const member of members) {
+        const currentGroupId = member.group?.id ?? member.group ?? null;
+        if (currentGroupId !== group.id) {
+          combatantUpdates.push({ _id: member.id, group: group.id });
+        }
+      }
+    }
+
+    for (const group of managedGroups) {
+      const groupId = group.getFlag(MODULE_ID, "groupId");
+      if (!npcBuckets.has(groupId) || npcBuckets.get(groupId).length < 2) {
+        await combat.deleteEmbeddedDocuments("CombatantGroup", [group.id], {
+          combatWallGroupSync: true
+        });
+      }
+    }
+
+    if (groupUpdates.length) {
+      await combat.updateEmbeddedDocuments("CombatantGroup", groupUpdates, {
+        combatWallGroupSync: true
+      });
+    }
+    if (combatantUpdates.length) {
+      await combat.updateEmbeddedDocuments("Combatant", combatantUpdates, {
+        combatWallGroupSync: true
+      });
+    }
+
+    await ensureStableSegmentOrder(combat, npcBuckets);
+  } catch (error) {
+    console.error(`${MODULE_TITLE} | Gruppeninitiative konnte nicht synchronisiert werden`, error);
+  } finally {
+    groupSyncRunning = false;
+  }
+}
+
+function firstInitiative(combatants) {
+  for (const combatant of combatants) {
+    const initiative = numberOrNull(combatant.initiative);
+    if (initiative !== null) return initiative;
+  }
+  return null;
+}
+
+async function ensureStableSegmentOrder(combat, npcBuckets) {
+  const storedOrder = combat.getFlag?.(MODULE_ID, "segmentOrder") ?? {};
+  const nextOrder = {};
+
+  for (const [groupId, combatants] of npcBuckets) {
+    const validIds = new Set(combatants.map((combatant) => combatant.id));
+    const previousIds = Array.isArray(storedOrder[groupId])
+      ? storedOrder[groupId].filter((id) => validIds.has(id))
+      : [];
+    const knownIds = new Set(previousIds);
+    const newIds = combatants
+      .filter((combatant) => !knownIds.has(combatant.id))
+      .sort(compareCombatantsByMapPosition)
+      .map((combatant) => combatant.id);
+    nextOrder[groupId] = previousIds.concat(newIds);
+  }
+
+  if (JSON.stringify(storedOrder) !== JSON.stringify(nextOrder)) {
+    await combat.setFlag(MODULE_ID, "segmentOrder", nextOrder);
+  }
+}
+
 function broadcastState(reason = "update", force = false) {
   if (!channel) return;
 
@@ -139,7 +314,7 @@ function broadcastState(reason = "update", force = false) {
 function buildDashboardState() {
   const combat = game.combat;
   const base = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     moduleVersion: MODULE_VERSION,
     world: {
       id: game.world?.id ?? null,
@@ -169,7 +344,10 @@ function buildDashboardState() {
 
   const actualCurrentCombatant = combat.combatant ?? allTurns[combat.turn ?? -1] ?? null;
   const currentCombatant = actualCurrentCombatant?.hidden ? null : actualCurrentCombatant;
-  const members = turns.map((combatant, index) => serializeCombatant(combatant, index, currentCombatant));
+  const segmentOrder = combat.getFlag?.(MODULE_ID, "segmentOrder") ?? {};
+  const members = turns.map((combatant, index) =>
+    serializeCombatant(combatant, index, currentCombatant, segmentOrder)
+  );
   const npcGroups = buildNpcGroups(members);
   const publicInitiative = buildPublicInitiative(members, npcGroups, currentCombatant?.id ?? null);
   const current = buildCurrentEntry(currentCombatant, members, npcGroups);
@@ -186,7 +364,7 @@ function buildDashboardState() {
   };
 }
 
-function serializeCombatant(combatant, turnIndex, currentCombatant) {
+function serializeCombatant(combatant, turnIndex, currentCombatant, segmentOrder) {
   const actor = combatant.actor ?? null;
   const token = combatant.token ?? null;
   const kind = classifyCombatant(combatant, actor, token);
@@ -199,6 +377,9 @@ function serializeCombatant(combatant, turnIndex, currentCombatant) {
 
   const groupId = kind === "npc" ? resolveGroupId(combatant, actor) : null;
   const groupName = kind === "npc" ? resolveGroupName(combatant, actor) : null;
+  const storedPosition = groupId ? segmentOrder[groupId]?.indexOf(combatant.id) ?? -1 : -1;
+  const size = kind === "npc" ? resolveCreatureSize(actor) : null;
+  const direction = kind === "npc" ? resolveDirection(token) : null;
 
   return {
     id: combatant.id,
@@ -213,6 +394,7 @@ function serializeCombatant(combatant, turnIndex, currentCombatant) {
     initiative: numberOrNull(combatant.initiative),
     groupId,
     groupName,
+    groupPosition: storedPosition >= 0 ? storedPosition + 1 : null,
     active: combatant.id === currentCombatant?.id,
     defeated,
     hidden: Boolean(combatant.hidden),
@@ -225,7 +407,11 @@ function serializeCombatant(combatant, turnIndex, currentCombatant) {
       x: numberOrNull(token?.x),
       y: numberOrNull(token?.y),
       elevation: numberOrNull(token?.elevation)
-    }
+    },
+    size,
+    layoutWeight: size ? SIZE_WEIGHTS[size] : null,
+    directionAngle: direction?.angle ?? null,
+    directionState: direction?.state ?? null
   };
 }
 
@@ -253,19 +439,32 @@ function classifyCombatant(combatant, actor, token) {
 
 function inspectCombatants() {
   const combatants = Array.from(game.combat?.combatants?.contents ?? []);
-  const rows = combatants.map((combatant) => {
+  const segmentOrder = game.combat?.getFlag?.(MODULE_ID, "segmentOrder") ?? {};
+  const rows = combatants.map((combatant, turnIndex) => {
     const actor = combatant.actor ?? null;
     const token = combatant.token ?? null;
     const parent = token?.parent ?? null;
+    const kind = classifyCombatant(combatant, actor, token);
+    const groupId = kind === "npc" ? resolveGroupId(combatant, actor) : null;
+    const storedPosition = groupId ? segmentOrder[groupId]?.indexOf(combatant.id) ?? -1 : -1;
+    const size = kind === "npc" ? resolveCreatureSize(actor) : null;
+    const direction = kind === "npc" ? resolveDirection(token) : null;
     return {
       Name: combatant.name ?? actor?.name ?? "Unbekannt",
-      "Erkannte Art": classifyCombatant(combatant, actor, token),
+      "Erkannte Art": kind,
       "Actor-Typ": actor?.type ?? null,
       "Actor-ID": combatant.actorId ?? actor?.id ?? null,
       "Token-ID": combatant.tokenId ?? token?.id ?? null,
       "Parent-Dokument": parent?.documentName ?? null,
       "Scene-ID": parent?.documentName === "Scene" ? parent.id : token?.scene?.id ?? null,
-      Tokenposition: token ? `${numberOrNull(token.x)}, ${numberOrNull(token.y)}` : null
+      Tokenposition: token ? `${numberOrNull(token.x)}, ${numberOrNull(token.y)}` : null,
+      groupId,
+      groupPosition: storedPosition >= 0 ? storedPosition + 1 : null,
+      size,
+      layoutWeight: size ? SIZE_WEIGHTS[size] : null,
+      directionAngle: direction?.angle ?? null,
+      directionState: direction?.state ?? null,
+      turnIndex
     };
   });
   console.table(rows);
@@ -278,8 +477,14 @@ function resolveGroupId(combatant, actor) {
     actor?.getFlag?.(MODULE_ID, "groupId");
 
   if (explicit) return slugify(String(explicit));
+  if (combatant.actorId) return `actor-${combatant.actorId}`;
   if (actor?.id) return `actor-${actor.id}`;
   return `name-${slugify(stripNumberSuffix(combatant.name ?? actor?.name ?? "gegner"))}`;
+}
+
+function resolveCombatantGroupId(combatant) {
+  if (classifyCombatant(combatant, combatant.actor, combatant.token) !== "npc") return null;
+  return resolveGroupId(combatant, combatant.actor);
 }
 
 function resolveGroupName(combatant, actor) {
@@ -307,6 +512,10 @@ function buildNpcGroups(members) {
         living: 0,
         defeated: 0,
         activeMember: null,
+        size: member.size,
+        layoutWeight: member.layoutWeight ?? 1,
+        mainEnemy: false,
+        layoutMultiplier: 1,
         members: []
       });
     }
@@ -321,10 +530,15 @@ function buildNpcGroups(members) {
 
   return Array.from(groups.values())
     .map((group) => {
-      group.members.sort(compareMembersByMapPosition);
+      group.members.sort(compareMembersByStablePosition);
       const activeIndex = group.members.findIndex((member) => member.active);
       group.activeMember = activeIndex >= 0 ? activeIndex + 1 : null;
       group.allDefeated = group.total > 0 && group.defeated === group.total;
+      group.effectiveLayoutWeight = clamp(
+        group.layoutWeight * group.layoutMultiplier,
+        0.65,
+        2.3
+      );
       return group;
     })
     .sort((a, b) => compareInitiative(a.initiative, b.initiative));
@@ -400,16 +614,57 @@ function buildCurrentEntry(currentCombatant, members, groups) {
   };
 }
 
-function compareMembersByMapPosition(a, b) {
-  const ay = a.position?.y ?? Number.MAX_SAFE_INTEGER;
-  const by = b.position?.y ?? Number.MAX_SAFE_INTEGER;
-  const ax = a.position?.x ?? Number.MAX_SAFE_INTEGER;
-  const bx = b.position?.x ?? Number.MAX_SAFE_INTEGER;
+function compareMembersByStablePosition(a, b) {
+  const left = a.groupPosition ?? Number.MAX_SAFE_INTEGER;
+  const right = b.groupPosition ?? Number.MAX_SAFE_INTEGER;
+  if (left !== right) return left - right;
+  return a.turnIndex - b.turnIndex;
+}
+
+function compareCombatantsByMapPosition(a, b) {
+  const ay = numberOrNull(a.token?.y) ?? Number.MAX_SAFE_INTEGER;
+  const by = numberOrNull(b.token?.y) ?? Number.MAX_SAFE_INTEGER;
+  const ax = numberOrNull(a.token?.x) ?? Number.MAX_SAFE_INTEGER;
+  const bx = numberOrNull(b.token?.x) ?? Number.MAX_SAFE_INTEGER;
 
   const rowTolerance = 50;
   if (Math.abs(ay - by) > rowTolerance) return ay - by;
   if (ax !== bx) return ax - bx;
-  return a.turnIndex - b.turnIndex;
+  return String(a.id).localeCompare(String(b.id));
+}
+
+function resolveCreatureSize(actor) {
+  const rawSize = foundry.utils.getProperty(actor, "system.traits.size");
+  const size = String(rawSize ?? "medium").toLowerCase();
+  return Object.hasOwn(SIZE_WEIGHTS, size) ? size : "medium";
+}
+
+function resolveDirection(token) {
+  const scene = token?.parent?.documentName === "Scene" ? token.parent : null;
+  if (!scene) return { angle: null, state: "unavailable" };
+
+  const dimensions = scene.dimensions ?? scene.getDimensions?.();
+  const sceneWidth = numberOrNull(dimensions?.sceneWidth) ?? numberOrNull(scene.width);
+  const sceneHeight = numberOrNull(dimensions?.sceneHeight) ?? numberOrNull(scene.height);
+  const sceneX = numberOrNull(dimensions?.sceneX) ?? 0;
+  const sceneY = numberOrNull(dimensions?.sceneY) ?? 0;
+  const gridSize = numberOrNull(dimensions?.size) ?? numberOrNull(scene.grid?.size) ?? 1;
+  if (!sceneWidth || !sceneHeight) return { angle: null, state: "unavailable" };
+
+  const sceneCenterX = sceneX + sceneWidth / 2;
+  const sceneCenterY = sceneY + sceneHeight / 2;
+  const tokenCenterX = (numberOrNull(token.x) ?? 0) + (numberOrNull(token.width) ?? 1) * gridSize / 2;
+  const tokenCenterY = (numberOrNull(token.y) ?? 0) + (numberOrNull(token.height) ?? 1) * gridSize / 2;
+  const deltaX = tokenCenterX - sceneCenterX;
+  const deltaY = tokenCenterY - sceneCenterY;
+  const distance = Math.hypot(deltaX, deltaY);
+  const threshold = Math.min(sceneWidth, sceneHeight) * CENTER_TARGET_THRESHOLD;
+
+  if (distance <= threshold) return { angle: null, state: "center" };
+  return {
+    angle: Math.round(Math.atan2(deltaY, deltaX) * 1800 / Math.PI) / 10,
+    state: "direction"
+  };
 }
 
 function compareInitiative(a, b) {
@@ -435,8 +690,13 @@ function slugify(value) {
 }
 
 function numberOrNull(value) {
+  if (value === null || value === undefined || value === "") return null;
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
+}
+
+function clamp(value, minimum, maximum) {
+  return Math.min(maximum, Math.max(minimum, value));
 }
 
 function absoluteAssetUrl(path) {

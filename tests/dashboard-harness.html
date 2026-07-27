@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../dashboard/dashboard.css">
+  <title>Combat Wall Layout Test</title>
+</head>
+<body>
+  <main id="app" class="app waiting">
+    <header class="topbar">
+      <section id="current-panel" class="current-panel empty">
+        <div class="current-image-wrap">
+          <img id="current-image" class="current-image" alt="Aktiver Teilnehmer">
+        </div>
+        <div class="current-copy">
+          <p class="eyebrow">Aktuell am Zug</p>
+          <h1 id="current-name">Noch kein aktiver Zug</h1>
+          <p id="current-meta" class="current-meta">Warte auf Foundry …</p>
+          <div id="current-statuses" class="status-row"></div>
+        </div>
+      </section>
+      <section class="order-panel">
+        <div class="order-heading">
+          <div>
+            <p class="eyebrow">Zugreihenfolge</p>
+            <h2 id="round-label">Kein aktiver Kampf</h2>
+          </div>
+          <div class="toolbar">
+            <span id="connection-indicator" class="connection-indicator waiting">Warte auf Daten</span>
+            <button id="refresh-button" type="button">Neu laden</button>
+            <button id="fullscreen-button" type="button">Vollbild</button>
+          </div>
+        </div>
+        <div id="initiative-strip" class="initiative-strip"></div>
+      </section>
+    </header>
+    <section id="empty-state" class="empty-state"></section>
+    <section id="groups-grid" class="groups-grid" aria-live="polite"></section>
+    <details id="debug-panel" class="debug-panel" hidden>
+      <summary>Debug-Daten</summary>
+      <pre id="debug-output"></pre>
+    </details>
+  </main>
+  <script src="../dashboard/dashboard.js"></script>
+  <script>
+    const channel = new BroadcastChannel("combat-wall:layout-test");
+    const sizes = [
+      ["Ratten", "tiny", 0.65],
+      ["Kobolde", "small", 0.8],
+      ["Skelette", "medium", 1],
+      ["Oger", "large", 1.4],
+      ["Riese", "huge", 1.8],
+      ["Drache", "gargantuan", 2.3]
+    ];
+    const initiative = Array.from({length: 12}, (_, index) => ({
+      id: `turn-${index}`,
+      kind: index % 3 ? "group" : "placeholder",
+      name: `Teilnehmer ${index + 1}`,
+      image: "../assets/fallback.svg",
+      active: index === 0,
+      memberCount: index % 3 ? 4 : undefined
+    }));
+    const groups = sizes.map(([name, size, weight], groupIndex) => ({
+      id: `group-${groupIndex}`,
+      name,
+      image: "../assets/fallback.svg",
+      living: 4,
+      total: 4,
+      size,
+      layoutWeight: weight,
+      layoutMultiplier: 1,
+      effectiveLayoutWeight: weight,
+      mainEnemy: false,
+      allDefeated: false,
+      members: Array.from({length: 4}, (_, memberIndex) => ({
+        id: `combatant-${groupIndex}-${memberIndex}`,
+        active: groupIndex === 2 && memberIndex === 1,
+        defeated: memberIndex === 3,
+        statuses: memberIndex === 0 ? ["poisoned"] : [],
+        directionState: memberIndex === 2 ? "center" : "direction",
+        directionAngle: memberIndex * 90
+      }))
+    }));
+    window.setTimeout(() => channel.postMessage({
+      type: "combat-state",
+      payload: {
+        combatActive: true,
+        round: 3,
+        current: {
+          kind: "npc",
+          name: "Skelett",
+          image: "../assets/fallback.svg",
+          groupName: "Skelette",
+          groupPosition: 2,
+          groupSize: 4,
+          statuses: ["poisoned"]
+        },
+        initiative,
+        groups
+      }
+    }), 100);
+  </script>
+</body>
+</html>

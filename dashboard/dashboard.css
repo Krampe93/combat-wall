@@ -296,14 +296,22 @@ button {
 }
 
 .groups-grid {
-  display: grid;
-  grid-template-columns: repeat(var(--group-columns, 1), minmax(0, 1fr));
-  grid-template-rows: repeat(var(--group-rows, 1), minmax(0, 1fr));
+  --group-gap: clamp(8px, 0.9vw, 16px);
+  display: flex;
+  flex-direction: column;
   gap: clamp(8px, 0.9vw, 16px);
   min-width: 0;
   min-height: 0;
   height: 100%;
   overflow: hidden;
+}
+
+.group-row {
+  display: flex;
+  flex: 1 1 0;
+  gap: var(--group-gap);
+  min-width: 0;
+  min-height: 0;
 }
 
 .group-card {
@@ -313,6 +321,7 @@ button {
   min-height: 0;
   height: 100%;
   overflow: hidden;
+  flex: var(--layout-weight, 1) 1 0;
 }
 
 .group-card.all-defeated {
@@ -396,20 +405,37 @@ button {
   backdrop-filter: grayscale(1);
 }
 
-.member-number {
+.direction-indicator {
   position: absolute;
   top: 10px;
   left: 10px;
   z-index: 2;
   display: grid;
   place-items: center;
-  width: clamp(30px, 2.5vw, 44px);
+  width: clamp(34px, 2.8vw, 48px);
   aspect-ratio: 1;
   border: 1px solid rgba(255, 255, 255, 0.42);
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.72);
-  font-size: clamp(0.9rem, 1.2vw, 1.25rem);
+  color: var(--gold-bright);
+  font-size: clamp(1.1rem, 1.45vw, 1.55rem);
   font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 2px 8px #000;
+  transform: rotate(var(--direction-angle, 0deg));
+  transition: transform 180ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+
+.direction-indicator[data-state="center"] {
+  transform: none;
+}
+
+.member-segment.active .direction-indicator {
+  border-color: var(--gold-bright);
+  color: #fff2bd;
+  background: rgba(128, 82, 15, 0.9);
+  box-shadow: 0 0 20px rgba(255, 218, 126, 0.78);
+  scale: 1.12;
 }
 
 .member-statuses {
@@ -477,13 +503,20 @@ button {
   }
 
   .groups-grid {
-    grid-template-columns: 1fr !important;
-    grid-template-rows: none !important;
+    display: grid;
+    grid-template-columns: 1fr;
     height: auto;
     overflow: visible;
   }
 
+  .group-row {
+    display: contents;
+  }
+
   .group-card {
+    width: 100%;
+    height: auto;
+    flex: none;
     min-height: 420px;
   }
 

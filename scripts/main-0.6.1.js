@@ -1,6 +1,6 @@
 const MODULE_ID = "combat-wall";
 const MODULE_TITLE = "Combat Wall";
-const MODULE_VERSION = "0.5.1";
+const MODULE_VERSION = "0.6.1";
 const CHANNEL_PREFIX = "combat-wall";
 const UPDATE_DEBOUNCE_MS = 80;
 const GROUP_SYNC_DEBOUNCE_MS = 160;
@@ -99,7 +99,8 @@ function exposeDebugApi() {
     broadcast: () => broadcastState("manual", true),
     synchronizeGroups: () => synchronizeNpcGroups(game.combat),
     getDashboardUrl,
-    inspectCombatants
+    inspectCombatants,
+    inspectPublicInitiative
   };
 }
 
@@ -173,6 +174,7 @@ async function synchronizeNpcGroups(combat, preferredInitiatives = new Map()) {
     const npcBuckets = new Map();
 
     for (const combatant of combatants) {
+      if (combatant.hidden) continue;
       if (classifyCombatant(combatant, combatant.actor, combatant.token) !== "npc") continue;
       const groupId = resolveCombatantGroupId(combatant);
       if (!groupId) continue;
@@ -231,9 +233,20 @@ async function synchronizeNpcGroups(combat, preferredInitiatives = new Map()) {
 
       for (const member of members) {
         const currentGroupId = member.group?.id ?? member.group ?? null;
+        const update = { _id: member.id };
+        let changed = false;
         if (currentGroupId !== group.id) {
-          combatantUpdates.push({ _id: member.id, group: group.id });
+          update.group = group.id;
+          changed = true;
         }
+        if (
+          sharedInitiative !== null &&
+          numberOrNull(member.initiative) !== sharedInitiative
+        ) {
+          update.initiative = sharedInitiative;
+          changed = true;
+        }
+        if (changed) combatantUpdates.push(update);
       }
     }
 
@@ -324,6 +337,7 @@ function buildDashboardState() {
     round: 0,
     turn: null,
     current: null,
+    activeCombatantId: null,
     initiative: [],
     groups: [],
     generatedAt: Date.now()
@@ -359,6 +373,7 @@ function buildDashboardState() {
     round: Number(combat.round ?? 0),
     turn: Number.isInteger(combat.turn) ? combat.turn : null,
     current,
+    activeCombatantId: currentCombatant?.id ?? null,
     initiative: publicInitiative,
     groups: npcGroups
   };
@@ -479,6 +494,26 @@ function inspectCombatants() {
   return rows;
 }
 
+function inspectPublicInitiative() {
+  const state = buildDashboardState();
+  const rows = state.initiative.map((entry, publicIndex) => ({
+    publicIndex,
+    id: entry.id,
+    kind: entry.kind,
+    name: entry.name,
+    groupId: entry.groupId ?? null,
+    totalMembers: entry.totalMembers ?? 1,
+    activeMembers: entry.activeMembers ?? (entry.defeated ? 0 : 1),
+    actionableMembers: entry.actionableMembers ?? (entry.defeated ? 0 : 1),
+    activeGroupPosition: entry.activeGroupPosition ?? null,
+    activeGroupCount: entry.activeGroupCount ?? null,
+    active: entry.active,
+    underlyingCombatantIds: entry.combatantIds ?? [entry.combatantId].filter(Boolean)
+  }));
+  console.table(rows);
+  return rows;
+}
+
 function resolveGroupId(combatant, actor) {
   const explicit =
     combatant.getFlag?.(MODULE_ID, "groupId") ||
@@ -519,6 +554,10 @@ function buildNpcGroups(members) {
         total: 0,
         living: 0,
         defeated: 0,
+        actionableMembers: 0,
+        activeCombatantId: null,
+        activeGroupPosition: null,
+        activeGroupCount: 0,
         activeMember: null,
         size: member.size,
         layoutWeight: member.layoutWeight ?? 1,
@@ -532,6 +571,7 @@ function buildNpcGroups(members) {
     group.total += 1;
     group.defeated += member.defeated ? 1 : 0;
     group.living += member.defeated ? 0 : 1;
+    group.actionableMembers += member.defeated ? 0 : 1;
     group.initiative = group.initiative ?? member.initiative;
     group.members.push(member);
   }
@@ -539,8 +579,18 @@ function buildNpcGroups(members) {
   return Array.from(groups.values())
     .map((group) => {
       group.members.sort(compareMembersByStablePosition);
-      const activeIndex = group.members.findIndex((member) => member.active);
+      const actionable = group.members.filter((member) => !member.defeated);
+      const activeMember = group.members.find((member) => member.active) ?? null;
+      const activeIndex = activeMember
+        ? actionable.findIndex((member) => member.id === activeMember.id)
+        : -1;
       group.activeMember = activeIndex >= 0 ? activeIndex + 1 : null;
+      group.activeCombatantId = activeMember?.id ?? null;
+      group.activeGroupPosition = group.activeMember;
+      group.activeGroupCount = actionable.length;
+      group.totalMembers = group.total;
+      group.activeMembers = group.living;
+      group.combatantIds = group.members.map((member) => member.id);
       group.allDefeated = group.total > 0 && group.defeated === group.total;
       group.effectiveLayoutWeight = clamp(
         group.layoutWeight * group.layoutMultiplier,
@@ -561,6 +611,7 @@ function buildPublicInitiative(members, groups, currentCombatantId) {
     if (member.kind !== "npc") {
       result.push({
         id: `combatant-${member.id}`,
+        combatantId: member.id,
         kind: member.kind,
         name: member.name,
         image: member.image,
@@ -578,13 +629,21 @@ function buildPublicInitiative(members, groups, currentCombatantId) {
     result.push({
       id: `group-${member.groupId}`,
       kind: "group",
+      groupId: member.groupId,
       name: group?.name ?? member.groupName,
       image: group?.image ?? member.image,
       initiative: group?.initiative ?? member.initiative,
       active: Boolean(group?.activeMember),
       defeated: Boolean(group?.allDefeated),
       activeMember: group?.activeMember ?? null,
-      memberCount: group?.total ?? 1
+      memberCount: group?.totalMembers ?? 1,
+      totalMembers: group?.totalMembers ?? 1,
+      activeMembers: group?.activeMembers ?? 1,
+      actionableMembers: group?.actionableMembers ?? 1,
+      activeGroupPosition: group?.activeGroupPosition ?? null,
+      activeGroupCount: group?.activeGroupCount ?? 1,
+      activeCombatantId: group?.activeCombatantId ?? null,
+      combatantIds: group?.combatantIds ?? [member.id]
     });
   }
 
@@ -616,8 +675,14 @@ function buildCurrentEntry(currentCombatant, members, groups) {
     tokenId: member.tokenId,
     groupId: member.groupId,
     groupName: member.groupName,
-    groupPosition: group?.activeMember ?? null,
-    groupSize: group?.total ?? 1,
+    groupPosition: group?.activeGroupPosition ?? null,
+    groupSize: group?.activeGroupCount ?? 1,
+    totalMembers: group?.totalMembers ?? 1,
+    activeMembers: group?.activeMembers ?? 1,
+    actionableMembers: group?.actionableMembers ?? 1,
+    activeGroupPosition: group?.activeGroupPosition ?? null,
+    activeGroupCount: group?.activeGroupCount ?? 1,
+    activeCombatantId: member.id,
     statuses: member.statuses,
     defeated: member.defeated,
     directionAngle: member.directionAngle,

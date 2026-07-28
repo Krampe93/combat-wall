@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="../dashboard/dashboard.css">
+  <link rel="stylesheet" href="../dashboard/dashboard-0.6.1.css?v=0.6.1">
   <title>Combat Wall Layout Test</title>
 </head>
 <body>
@@ -42,7 +42,7 @@
       <pre id="debug-output"></pre>
     </details>
   </main>
-  <script src="../dashboard/dashboard.js"></script>
+  <script src="../dashboard/dashboard-0.6.1.js?v=0.6.1"></script>
   <script>
     const channel = new BroadcastChannel("combat-wall:layout-test");
     const testParams = new URLSearchParams(location.search);
@@ -73,6 +73,12 @@
       image: "../assets/fallback.svg",
       living: 4,
       total: 4,
+      totalMembers: 4,
+      activeMembers: 3,
+      actionableMembers: 3,
+      activeCombatantId: !playerTurn && groupIndex === 2 ? `combatant-${groupIndex}-${activeMemberIndex}` : null,
+      activeGroupPosition: !playerTurn && groupIndex === 2 ? Math.min(activeMemberIndex + 1, 3) : null,
+      activeGroupCount: 3,
       size,
       layoutWeight: weight,
       layoutMultiplier: 1,
@@ -110,7 +116,13 @@
           groupId: "group-2",
           groupName: "Skelette",
           groupPosition: activeMemberIndex + 1,
-          groupSize: 4,
+          groupSize: 3,
+          totalMembers: 4,
+          activeMembers: 3,
+          actionableMembers: 3,
+          activeGroupPosition: Math.min(activeMemberIndex + 1, 3),
+          activeGroupCount: 3,
+          activeCombatantId: `combatant-2-${activeMemberIndex}`,
           statuses: ["poisoned"],
           directionState: activeMemberIndex === 2 ? "center" : "direction",
           directionAngle: activeMemberIndex * 90

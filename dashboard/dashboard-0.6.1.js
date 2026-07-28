@@ -1,6 +1,9 @@
 (() => {
   "use strict";
 
+  const DASHBOARD_VERSION = "0.6.1";
+  console.log(`Combat Wall Dashboard ${DASHBOARD_VERSION} geladen.`);
+
   const params = new URLSearchParams(location.search);
   const worldId = params.get("world") || "unknown-world";
   const worldTitle = params.get("title") || "Foundry-Welt";
@@ -238,7 +241,8 @@
     const title = document.createElement("h2");
     title.textContent = member.name || group.name;
     const progress = document.createElement("span");
-    progress.textContent = `${group.name} · ${group.activeMember ?? "?"} von ${group.total}`;
+    progress.textContent =
+      `${group.name} · ${group.activeGroupPosition ?? group.activeMember ?? "?"} von ${group.activeGroupCount ?? group.actionableMembers ?? group.total}`;
     header.append(title, progress);
     card.append(image, shade, header, createFocusOverlay(member));
     return card;

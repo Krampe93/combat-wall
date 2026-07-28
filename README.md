@@ -1,6 +1,19 @@
-# Combat Wall 0.6.1
+# Combat Wall 0.7.0
 
 Leichtes externes Kampfdashboard für Foundry VTT 14 und D&D5e 5.3.2.
+
+## Größenabhängiges Layout in Version 0.7.0
+
+- Combat Wall liest `system.traits.size` für NPCs aus und überträgt `creatureSize`, `sizeSource` und `layoutWeight`.
+- Ausgangsgewichte: Tiny `0.65`, Small `0.8`, Medium `1.0`, Large `1.4`, Huge `1.8`, Gargantuan `2.3`.
+- Fehlende oder unbekannte Größen fallen auf Medium zurück und werden mit `sizeSource: fallback` diagnostiziert.
+- Im Übersichtsmodus verteilt ein gewichteter Pack-Algorithmus die Gegnerfläche. Mindestbreiten schützen Namen, Zähler, Pfeile und Status; bei mehreren Gruppen wird eine normale Kachel auf ungefähr 56 Prozent der Breite begrenzt.
+- Die äußere Kachelgröße hängt von der Kreaturengröße ab. Die Mitgliederzahl steuert ausschließlich das innere Segmentraster.
+- Im Fokusmodus bleibt der aktive konkrete Gegner groß in der Mitte; die übrigen Gruppen werden gewichtet auf beide Seiten verteilt.
+- Reine Tokenbewegungen ändern nur die betreffenden Segmente. Neu gepackt wird bei Struktur-, Modus- und Größenänderungen.
+- Übergänge dauern 300–450 ms und `prefers-reduced-motion` wird respektiert.
+
+Bekannte Grenze: Bei sehr kleinen Fenstern und außergewöhnlich vielen Gruppen priorisiert Combat Wall kompakte Lesbarkeit. Optimiert ist das Layout für den vorgesehenen 16:9-Vollbildbetrieb.
 
 ## Gruppeninitiative in Version 0.6.1
 
@@ -54,6 +67,7 @@ In der Foundry-Konsole:
 ```js
 CombatWall.inspectCombatants()
 CombatWall.inspectPublicInitiative()
+CombatWall.inspectLayout()
 ```
 
 Im Dashboard:
@@ -62,9 +76,9 @@ Im Dashboard:
 CombatWallDashboard.inspectLayout()
 ```
 
-Die Dashboard-Diagnose zeigt Layoutmodus, gemessene Breite, Kartenbreite, Gap, sichtbare Initiativekarten, aktiven Combatant und Gegnergruppen.
+Die Dashboard-Diagnose zeigt pro Gruppe Größe, Größenquelle, Gewicht, Mindest-/Maximalbreite, zugewiesene Fläche, Slot sowie angewendete Fallbacks oder Begrenzungen.
 
-Das Dashboard meldet beim Laden eindeutig `Combat Wall Dashboard 0.6.1 geladen.`. JavaScript und CSS tragen versionsabhängige Dateinamen und Query-Parameter, damit ein Modulupdate keine alten Dashboard-Dateien aus dem Browsercache weiterverwendet.
+Das Dashboard meldet beim Laden eindeutig `Combat Wall Dashboard 0.7.0 geladen.`. JavaScript und CSS tragen versionsabhängige Dateinamen und Query-Parameter, damit ein Modulupdate keine alten Dashboard-Dateien aus dem Browsercache weiterverwendet.
 
 ## Installation und Aktualisierung
 

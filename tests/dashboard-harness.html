@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="../dashboard/dashboard-0.6.1.css?v=0.6.1">
+  <link rel="stylesheet" href="../dashboard/dashboard-0.7.0.css?v=0.7.0">
   <title>Combat Wall Layout Test</title>
 </head>
 <body>
@@ -42,7 +42,7 @@
       <pre id="debug-output"></pre>
     </details>
   </main>
-  <script src="../dashboard/dashboard-0.6.1.js?v=0.6.1"></script>
+  <script src="../dashboard/dashboard-0.7.0.js?v=0.7.0"></script>
   <script>
     const channel = new BroadcastChannel("combat-wall:layout-test");
     const testParams = new URLSearchParams(location.search);
@@ -80,6 +80,8 @@
       activeGroupPosition: !playerTurn && groupIndex === 2 ? Math.min(activeMemberIndex + 1, 3) : null,
       activeGroupCount: 3,
       size,
+      creatureSize: size,
+      sizeSource: "actor",
       layoutWeight: weight,
       layoutMultiplier: 1,
       effectiveLayoutWeight: weight,

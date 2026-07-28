@@ -2,7 +2,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const vm = require("node:vm");
 
-const source = fs.readFileSync("scripts/main-0.6.1.js", "utf8");
+const source = fs.readFileSync("scripts/main-0.7.0.js", "utf8");
 const context = vm.createContext({
   console,
   Hooks: { once() {}, on() {} },
@@ -118,4 +118,16 @@ function state(members, activeId) {
   assert.equal(result.initiative.find((entry) => entry.active).groupId, "kultisten");
 }
 
-console.log("Combat Wall 0.6.1 group tests passed.");
+{
+  const actorSize = context.resolveCreatureSize({ system: { traits: { size: "huge" } } });
+  const fallbackSize = context.resolveCreatureSize({ system: { traits: { size: "unexpected" } } });
+  const missingSize = context.resolveCreatureSize({ system: { traits: {} } });
+  assert.equal(actorSize.size, "huge");
+  assert.equal(actorSize.source, "actor");
+  assert.equal(fallbackSize.size, "medium");
+  assert.equal(fallbackSize.source, "fallback");
+  assert.equal(missingSize.size, "medium");
+  assert.equal(missingSize.source, "fallback");
+}
+
+console.log("Combat Wall 0.7.0 group tests passed.");

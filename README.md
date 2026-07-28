@@ -1,6 +1,19 @@
-# Combat Wall 0.5.1
+# Combat Wall 0.6.0
 
 Leichtes externes Kampfdashboard für Foundry VTT 14 und D&D5e 5.3.2.
+
+## Gruppeninitiative in Version 0.6.0
+
+- NPCs mit demselben Actor beziehungsweise Statblock bilden in Foundry einen zusammenhängenden, nativen `CombatantGroup`-Block.
+- Alle Mitglieder des Blocks erhalten kontrolliert dieselbe Initiative; ihre bestehende Foundry-Reihenfolge bleibt erhalten.
+- Die Synchronisierung läuft beim Kampfstart sowie bei Änderungen an Kampf, Combatants und Initiative. Modulinterne Updates sind markiert, damit keine Update-Schleifen entstehen.
+- Öffentlich erscheint jede Gegnergruppe nur einmal. Spieler-Placeholder bleiben einzelne Einträge.
+- Der GM klickt weiterhin jeden einzelnen Foundry-Combatant normal durch; Combat Wall führt keine zweite Initiative.
+- Der Fokus folgt immer `activeCombatantId` und zeigt den Fortschritt nur unter den aktuell handlungsfähigen Mitgliedern, etwa `Skelett 2 von 2`.
+- Besiegte Mitglieder zählen weiter zum Gesamtzustand der Kachel (`2/4 aktiv`), aber nicht zum aktiven Gruppenfortschritt.
+- Verborgene oder für die aktuelle Szene ungültige Gegner werden nicht öffentlich übertragen.
+
+Bekannte Grenze: Foundry entscheidet weiterhin, welcher Combatant als Nächstes aktiv wird. Combat Wall verändert nicht eigenständig den Zug und bietet in 0.6.0 keine freie Auswahl innerhalb einer Gruppe.
 
 ## Bugfixes in Version 0.5.1
 
@@ -34,6 +47,7 @@ In der Foundry-Konsole:
 
 ```js
 CombatWall.inspectCombatants()
+CombatWall.inspectPublicInitiative()
 ```
 
 Im Dashboard:
@@ -43,6 +57,8 @@ CombatWallDashboard.inspectLayout()
 ```
 
 Die Dashboard-Diagnose zeigt Layoutmodus, gemessene Breite, Kartenbreite, Gap, sichtbare Initiativekarten, aktiven Combatant und Gegnergruppen.
+
+Das Dashboard meldet beim Laden eindeutig `Combat Wall Dashboard 0.6.0 geladen.`. JavaScript und CSS tragen versionsabhängige Dateinamen und Query-Parameter, damit ein Modulupdate keine alten Dashboard-Dateien aus dem Browsercache weiterverwendet.
 
 ## Installation und Aktualisierung
 

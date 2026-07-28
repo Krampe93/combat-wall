@@ -1,4 +1,31 @@
-# Combat Wall 0.8.0
+# Combat Wall 0.9.0
+
+## Positionsmarker und neue Initiative in Version 0.9.0
+
+- Die separate Kachel „Aktuell am Zug“ wurde entfernt. Die Initiative nutzt die
+  gesamte Kopfbreite; der aktive öffentliche Eintrag steht zuerst und ist größer.
+- Der permanente Fokusmodus bleibt erhalten.
+- Farbige Punkte ersetzen die bisherigen Richtungspfeile. Ihre Lage auf dem
+  Gegnerbild entspricht der normalisierten Tokenposition innerhalb der
+  tatsächlichen Szenengrenzen.
+- Alle sichtbaren Mitglieder einer Gegnergruppe bleiben gleichzeitig markiert.
+  Der aktive Punkt erhält einen zusätzlichen Ring; besiegte Punkte werden gedimmt.
+- Farben werden über die stabile Encounter-Reihenfolge reproduzierbar an
+  Combatants gebunden.
+
+### Marker-API
+
+Externe GM-Makros können dieselben Farben und Positionen sicher abfragen:
+
+```js
+CombatWall.getMarkerData(combatantId);      // Markerobjekt oder null
+CombatWall.getGroupMarkerData(groupId);     // stabiles Array oder []
+CombatWall.inspectMarkers();                // Diagnose als console.table()
+```
+
+Spieler und verborgene oder ungültige Gegner erhalten keine öffentlichen
+Positionsmarker. Das GM-Combat-Dashboard selbst wird erst in einem späteren
+Schritt an diese API angebunden.
 
 ## Permanenter Fokusmodus in Version 0.8.0
 

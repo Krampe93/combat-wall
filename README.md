@@ -1,8 +1,12 @@
-# Combat Wall 0.5.1
+# Combat Wall 0.5.2
 
 Leichtes externes Kampfdashboard für Foundry VTT 14 und D&D5e 5.3.2.
 
-## Bugfixes in Version 0.5.1
+## Bugfixes in Version 0.5.2
+
+- Der Richtungspfeil der großen Fokuskarte ist an deren sichtbaren Bildbereich gebunden und exakt zentriert.
+- Zentrierung und Rotation verwenden getrennte DOM-Elemente, sodass die Rotation die Position nicht mehr überschreiben kann.
+- Im Fokusmodus wird nur noch ein Richtungspfeil für den konkret aktiven Combatant dargestellt.
 
 - Spieler-Placeholder zeigen öffentlich nur noch `Spielerzug`.
 - Der Fokusmodus verwendet den aktiven konkreten Combatant statt eines Gruppen-Fallbacks.

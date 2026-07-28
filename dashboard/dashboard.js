@@ -307,18 +307,21 @@
   }
 
   function createDirectionIndicator(member, additionalClass = "") {
+    const anchor = document.createElement("span");
+    anchor.className = `direction-anchor ${additionalClass}`.trim();
+    anchor.dataset.state = member.directionState || "unavailable";
     const direction = document.createElement("span");
-    direction.className = `direction-indicator ${additionalClass}`.trim();
-    direction.dataset.state = member.directionState || "unavailable";
+    direction.className = "direction-indicator";
     if (member.directionState === "center") {
       direction.textContent = "◎";
-      direction.setAttribute("aria-label", "Nahe der Szenenmitte");
+      anchor.setAttribute("aria-label", "Nahe der Szenenmitte");
     } else if (member.directionState === "direction" && Number.isFinite(member.directionAngle)) {
       direction.textContent = "➤";
       direction.style.setProperty("--direction-angle", `${member.directionAngle}deg`);
-      direction.setAttribute("aria-label", "Richtung von der Szenenmitte");
-    } else direction.hidden = true;
-    return direction;
+      anchor.setAttribute("aria-label", "Richtung von der Szenenmitte");
+    } else anchor.hidden = true;
+    anchor.append(direction);
+    return anchor;
   }
 
   function createStatusBadge(status, compact = false) {

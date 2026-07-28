@@ -363,6 +363,9 @@ button {
 
 .focus-direction {
   z-index: 5;
+}
+
+.focus-direction .direction-indicator {
   width: clamp(58px, 5vw, 88px);
   font-size: clamp(1.8rem, 2.8vw, 3rem);
 }
@@ -476,11 +479,15 @@ button {
   backdrop-filter: grayscale(1);
 }
 
-.direction-indicator {
+.direction-anchor {
   position: absolute;
   top: 50%;
   left: 50%;
   z-index: 2;
+  transform: translate(-50%, -50%);
+}
+
+.direction-indicator {
   display: grid;
   place-items: center;
   width: clamp(34px, 2.8vw, 48px);
@@ -493,12 +500,12 @@ button {
   font-weight: 900;
   line-height: 1;
   text-shadow: 0 2px 8px #000;
-  transform: translate(-50%, -50%) rotate(var(--direction-angle, 0deg));
+  transform: rotate(var(--direction-angle, 0deg));
   transition: transform 180ms ease, color 180ms ease, box-shadow 180ms ease;
 }
 
-.direction-indicator[data-state="center"] {
-  transform: translate(-50%, -50%);
+.direction-anchor[data-state="center"] .direction-indicator {
+  transform: none;
 }
 
 .member-segment.active .direction-indicator {

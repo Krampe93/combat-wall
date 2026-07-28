@@ -1,7 +1,7 @@
 #combat-wall-open {
   position: fixed;
   left: 12px;
-  bottom: 12px;
+  bottom: 76px;
   z-index: 10000;
   display: inline-flex;
   align-items: center;
@@ -13,8 +13,14 @@
   background: rgba(20, 18, 17, 0.94);
   color: #f4e7c4;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
-  cursor: pointer;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
   font-size: 0.9rem;
+}
+
+#combat-wall-open:active {
+  cursor: grabbing;
 }
 
 #combat-wall-open:hover,

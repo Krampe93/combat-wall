@@ -1,4 +1,15 @@
-# Combat Wall 0.7.1
+# Combat Wall 0.7.2
+
+## Bugfixes in Version 0.7.2
+
+- Der Übersichtsmodus verwendet wieder ein echtes zweidimensionales Mosaic-Raster statt einer einzelnen proportionalen Balkenzeile.
+- Kreaturengrößen werden in diskrete Rasterflächen übersetzt: große Gegner belegen mehrere Zellen, kleine Gegner mindestens eine vollständig lesbare Zelle.
+- Mindestbreite und Mindesthöhe haben Vorrang vor einer mathematisch exakten Gewichtsverteilung.
+- `CombatWallDashboard.inspectLayout()` zeigt Rasterzeile, Spalte, Spans, zugewiesene Maße und Packing-Strategie.
+- Der Combat-Wall-Button liegt standardmäßig oberhalb der FPS-/Latenzanzeige, lässt sich innerhalb des Fensters verschieben und speichert seine Position lokal.
+- Ein Rechtsklick auf den Button setzt ihn auf die sichere Standardposition zurück.
+
+Der 0.7.1-Algorithmus optimierte gewichtete Pixelbreiten innerhalb variabler Zeilen. Bei sechs Gruppen gewann dadurch eine einzelne horizontale Reihe mit sehr schmalen leichten Gruppen. 0.7.2 packt Gewichte stattdessen als Rasterspannen in ein zweidimensionales Mosaic.
 
 ## Bugfixes in Version 0.7.1
 
@@ -86,7 +97,7 @@ CombatWallDashboard.inspectLayout()
 
 Die Dashboard-Diagnose zeigt pro Gruppe Größe, Größenquelle, Gewicht, Mindest-/Maximalbreite, zugewiesene Fläche, Slot sowie angewendete Fallbacks oder Begrenzungen.
 
-Das Dashboard meldet beim Laden eindeutig `Combat Wall Dashboard 0.7.0 geladen.`. JavaScript und CSS tragen versionsabhängige Dateinamen und Query-Parameter, damit ein Modulupdate keine alten Dashboard-Dateien aus dem Browsercache weiterverwendet.
+Das Dashboard meldet beim Laden eindeutig `Combat Wall Dashboard 0.7.2 geladen.`. JavaScript und CSS tragen versionsabhängige Dateinamen und Query-Parameter, damit ein Modulupdate keine alten Dashboard-Dateien aus dem Browsercache weiterverwendet.
 
 ## Installation und Aktualisierung
 

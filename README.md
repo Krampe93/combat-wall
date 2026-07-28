@@ -1,4 +1,16 @@
-# Combat Wall 0.7.2
+# Combat Wall 0.8.0
+
+## Permanenter Fokusmodus in Version 0.8.0
+
+- Der untere Hauptbereich verwendet bei jedem Zug dasselbe Fokuslayout: Gegner links, aktiver Teilnehmer groß in der Mitte, Gegner rechts.
+- Beim Gegnerzug zeigt die Mitte den konkreten Combatant samt Gruppenfortschritt, Status und individuellem Richtungspfeil.
+- Beim Spielerzug erscheint ausschließlich der aktive Spieler in der Mitte. Andere Spieler werden unten nicht dargestellt; Spieler erhalten weder Richtungspfeil noch Gegnerstatus.
+- Rechtsklick auf den verschiebbaren Combat-Wall-Button öffnet die kompakte Spielerbild-Zuweisung. Umschalt + Rechtsklick setzt die Buttonposition zurück.
+- Bildpriorität: Combatant-Flag `flags.combat-wall.focusImage`, gespeicherte Zuordnung nach normalisiertem Spielernamen, vorhandenes Token-/Actorbild, Modul-Fallback.
+- Der aktive Gegner wird nicht zusätzlich auf einer Seite dupliziert. Bei zu vielen Gegnergruppen erscheint `+N weitere`.
+- `CombatWall.inspectPlayerImages()` zeigt die gespeicherten Spielerbilder.
+
+Bekannte Grenze: Gleichnamige Spieler-Placeholder teilen absichtlich dieselbe persistente Bildzuordnung.
 
 ## Bugfixes in Version 0.7.2
 

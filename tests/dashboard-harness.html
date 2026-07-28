@@ -36,7 +36,7 @@
       </section>
     </header>
     <section id="empty-state" class="empty-state"></section>
-    <section id="groups-grid" class="groups-grid" aria-live="polite"></section>
+    <section id="groups-grid" class="groups-grid" aria-live="polite" data-layout-mode="overview"></section>
     <details id="debug-panel" class="debug-panel" hidden>
       <summary>Debug-Daten</summary>
       <pre id="debug-output"></pre>
@@ -45,6 +45,9 @@
   <script src="../dashboard/dashboard.js"></script>
   <script>
     const channel = new BroadcastChannel("combat-wall:layout-test");
+    const testParams = new URLSearchParams(location.search);
+    const groupCount = Number(testParams.get("groups") || 6);
+    const playerTurn = testParams.get("mode") === "overview";
     const sizes = [
       ["Ratten", "tiny", 0.65],
       ["Kobolde", "small", 0.8],
@@ -61,9 +64,11 @@
       active: index === 0,
       memberCount: index % 3 ? 4 : undefined
     }));
-    const groups = sizes.map(([name, size, weight], groupIndex) => ({
+    const groups = Array.from({length: groupCount}, (_, groupIndex) => {
+      const [name, size, weight] = sizes[groupIndex % sizes.length];
+      return ({
       id: `group-${groupIndex}`,
-      name,
+      name: groupIndex > 5 ? `${name} mit einem besonders langen Namen ${groupIndex + 1}` : name,
       image: "../assets/fallback.svg",
       living: 4,
       total: 4,
@@ -75,21 +80,30 @@
       allDefeated: false,
       members: Array.from({length: 4}, (_, memberIndex) => ({
         id: `combatant-${groupIndex}-${memberIndex}`,
-        active: groupIndex === 2 && memberIndex === 1,
+        name: `${name} ${memberIndex + 1}`,
+        image: "../assets/fallback.svg",
+        active: !playerTurn && groupIndex === 2 && memberIndex === 1,
         defeated: memberIndex === 3,
         statuses: memberIndex === 0 ? ["poisoned"] : [],
         directionState: memberIndex === 2 ? "center" : "direction",
         directionAngle: memberIndex * 90
       }))
-    }));
+    })});
     window.setTimeout(() => channel.postMessage({
       type: "combat-state",
       payload: {
         combatActive: true,
         round: 3,
-        current: {
+        current: playerTurn ? {
+          id: "turn-0",
+          kind: "placeholder",
+          name: "Teilnehmer 1",
+          image: "../assets/fallback.svg",
+          statuses: []
+        } : {
+          id: "combatant-2-1",
           kind: "npc",
-          name: "Skelett",
+          name: "Skelett 2",
           image: "../assets/fallback.svg",
           groupName: "Skelette",
           groupPosition: 2,

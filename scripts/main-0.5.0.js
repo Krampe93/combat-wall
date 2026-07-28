@@ -1,6 +1,6 @@
 const MODULE_ID = "combat-wall";
 const MODULE_TITLE = "Combat Wall";
-const MODULE_VERSION = "0.4.0";
+const MODULE_VERSION = "0.5.0";
 const CHANNEL_PREFIX = "combat-wall";
 const UPDATE_DEBOUNCE_MS = 80;
 const GROUP_SYNC_DEBOUNCE_MS = 160;
@@ -299,7 +299,7 @@ function broadcastState(reason = "update", force = false) {
   if (!channel) return;
 
   const state = buildDashboardState();
-  const signature = JSON.stringify(state);
+  const signature = JSON.stringify(state, (key, value) => key === "generatedAt" ? undefined : value);
   if (!force && signature === lastStateSignature) return;
 
   lastStateSignature = signature;

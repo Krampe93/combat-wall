@@ -1,223 +1,263 @@
 (() => {
   "use strict";
 
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(location.search);
   const worldId = params.get("world") || "unknown-world";
   const worldTitle = params.get("title") || "Foundry-Welt";
   const debugEnabled = params.get("debug") === "1";
   const channel = new BroadcastChannel(`combat-wall:${worldId}`);
-
-  const app = document.getElementById("app");
-  const currentPanel = document.getElementById("current-panel");
-  const currentImage = document.getElementById("current-image");
-  const currentName = document.getElementById("current-name");
-  const currentMeta = document.getElementById("current-meta");
-  const currentStatuses = document.getElementById("current-statuses");
-  const roundLabel = document.getElementById("round-label");
-  const initiativeStrip = document.getElementById("initiative-strip");
-  const groupsGrid = document.getElementById("groups-grid");
-  const emptyState = document.getElementById("empty-state");
-  const emptyTitle = document.getElementById("empty-title");
-  const emptyCopy = document.getElementById("empty-copy");
-  const debugPanel = document.getElementById("debug-panel");
-  const debugOutput = document.getElementById("debug-output");
-  const connectionIndicator = document.getElementById("connection-indicator");
-  const refreshButton = document.getElementById("refresh-button");
-  const fullscreenButton = document.getElementById("fullscreen-button");
+  const $ = (id) => document.getElementById(id);
+  const app = $("app");
+  const currentPanel = $("current-panel");
+  const currentImage = $("current-image");
+  const currentName = $("current-name");
+  const currentMeta = $("current-meta");
+  const currentStatuses = $("current-statuses");
+  const roundLabel = $("round-label");
+  const initiativeStrip = $("initiative-strip");
+  const groupsGrid = $("groups-grid");
+  const emptyState = $("empty-state");
+  const emptyTitle = $("empty-title");
+  const emptyCopy = $("empty-copy");
+  const debugPanel = $("debug-panel");
+  const debugOutput = $("debug-output");
+  const connectionIndicator = $("connection-indicator");
+  const refreshButton = $("refresh-button");
+  const fullscreenButton = $("fullscreen-button");
 
   let lastReceivedAt = 0;
-  let requestTimer = null;
-  let connectionTimer = null;
+  let lastStateSignature = "";
+  let lastState = null;
   let lastInitiativeEntries = [];
-  let initiativeRenderFrame = null;
+  let initiativeFrame = 0;
+  let layoutMode = "overview";
 
   document.title = `Combat Wall – ${worldTitle}`;
   debugPanel.hidden = !debugEnabled;
 
-  channel.addEventListener("message", (event) => {
-    const message = event.data;
-    if (!message || message.type !== "combat-state") return;
-
+  channel.addEventListener("message", ({ data }) => {
+    if (!data || data.type !== "combat-state") return;
     lastReceivedAt = Date.now();
-    render(message.payload);
-    if (debugEnabled) debugOutput.textContent = JSON.stringify(message.payload, null, 2);
+    const signature = stableStringify(data.payload);
+    if (signature !== lastStateSignature) {
+      lastStateSignature = signature;
+      lastState = data.payload;
+      render(data.payload);
+      if (debugEnabled) debugOutput.textContent = JSON.stringify(data.payload, null, 2);
+    }
     updateConnectionState();
   });
 
   refreshButton.addEventListener("click", requestState);
   fullscreenButton.addEventListener("click", toggleFullscreen);
   document.addEventListener("fullscreenchange", updateFullscreenButton);
-  const initiativeResizeObserver = new ResizeObserver(() => scheduleInitiativeRender());
-  initiativeResizeObserver.observe(initiativeStrip);
+  const resizeObserver = new ResizeObserver(scheduleInitiativeRender);
+  resizeObserver.observe(initiativeStrip);
 
   requestState();
-  requestTimer = window.setInterval(requestState, 5000);
-  connectionTimer = window.setInterval(updateConnectionState, 1000);
-
-  window.addEventListener("beforeunload", () => {
-    window.clearInterval(requestTimer);
-    window.clearInterval(connectionTimer);
-    window.cancelAnimationFrame(initiativeRenderFrame);
-    initiativeResizeObserver.disconnect();
+  const requestTimer = setInterval(requestState, 5000);
+  const connectionTimer = setInterval(updateConnectionState, 1000);
+  addEventListener("beforeunload", () => {
+    clearInterval(requestTimer);
+    clearInterval(connectionTimer);
+    cancelAnimationFrame(initiativeFrame);
+    resizeObserver.disconnect();
     channel.close();
   });
 
   function requestState() {
-    channel.postMessage({
-      type: "request-state",
-      requestedAt: Date.now()
-    });
+    channel.postMessage({ type: "request-state", requestedAt: Date.now() });
   }
 
   function render(state) {
     app.classList.remove("waiting");
     const groups = state.groups || [];
-
+    layoutMode = state.current?.kind === "npc" ? "focus" : "overview";
     renderCurrent(state.current, state.combatActive);
-    renderInitiative(state.initiative || []);
-    renderGroups(groups);
-
-    roundLabel.textContent = state.combatActive
-      ? `Runde ${state.round || 0}`
-      : "Kein aktiver Kampf";
-
-    const showEmptyState = groups.length === 0;
-    emptyState.hidden = !showEmptyState;
-    groupsGrid.hidden = showEmptyState;
-
+    lastInitiativeEntries = state.initiative || [];
+    scheduleInitiativeRender();
+    renderGroups(groups, state.current);
+    roundLabel.textContent = state.combatActive ? `Runde ${state.round || 0}` : "Kein aktiver Kampf";
+    const empty = groups.length === 0;
+    emptyState.hidden = !empty;
+    groupsGrid.hidden = empty;
     if (!state.combatActive) {
       emptyTitle.textContent = "Combat Wall wartet auf einen Kampf";
-      emptyCopy.textContent = "Starte einen Encounter in Foundry. Spieler-Placeholders bleiben in der Zugreihenfolge, während hier ausschließlich Gegner erscheinen.";
-    } else if (!groups.length) {
+      emptyCopy.textContent = "Starte einen Encounter in Foundry.";
+    } else if (empty) {
       emptyTitle.textContent = "Keine Gegner im Encounter";
-      emptyCopy.textContent = "Die Initiative enthält derzeit nur Spieler-Placeholders oder spielergeführte Einträge.";
+      emptyCopy.textContent = "Die Initiative enthält derzeit nur Spieler-Placeholder.";
     }
   }
 
   function renderCurrent(current, combatActive) {
-    currentStatuses.replaceChildren();
-
     if (!current) {
       currentPanel.classList.add("empty");
       currentPanel.dataset.kind = "none";
       currentImage.removeAttribute("src");
       currentName.textContent = combatActive ? "Kein aktiver Teilnehmer" : "Noch kein aktiver Zug";
       currentMeta.textContent = combatActive ? "Initiative vorhanden, aber noch niemand ausgewählt." : "Warte auf Foundry …";
+      reconcileStatuses(currentStatuses, []);
       return;
     }
-
     currentPanel.classList.remove("empty");
     currentPanel.dataset.kind = current.kind;
-    currentImage.src = current.image;
+    setImage(currentImage, current.image);
     currentImage.alt = current.name;
     currentName.textContent = current.name;
-
-    if (current.kind === "npc") {
-      currentMeta.textContent = `${current.groupName} · ${current.groupPosition ?? "?"} von ${current.groupSize ?? "?"}`;
-    } else if (current.kind === "placeholder") {
-      currentMeta.textContent = "Spielerzug · Initiative-Placeholder";
-    } else {
-      currentMeta.textContent = "Spielerzug";
-    }
-
-    for (const status of current.statuses || []) {
-      currentStatuses.append(createStatusBadge(status));
-    }
-  }
-
-  function renderInitiative(entries) {
-    lastInitiativeEntries = entries;
-    scheduleInitiativeRender();
+    currentMeta.textContent = current.kind === "npc"
+      ? `${current.groupName} · ${current.groupPosition ?? "?"} von ${current.groupSize ?? "?"}`
+      : current.kind === "placeholder" ? "Spielerzug · Initiative-Placeholder" : "Spielerzug";
+    reconcileStatuses(currentStatuses, current.statuses || []);
   }
 
   function scheduleInitiativeRender() {
-    window.cancelAnimationFrame(initiativeRenderFrame);
-    initiativeRenderFrame = window.requestAnimationFrame(renderUpcomingInitiative);
+    cancelAnimationFrame(initiativeFrame);
+    initiativeFrame = requestAnimationFrame(renderUpcomingInitiative);
   }
 
   function renderUpcomingInitiative() {
-    initiativeStrip.replaceChildren();
-    const upcomingEntries = rotateAfterActive(lastInitiativeEntries);
-    const visibleCount = initiativeCapacity(initiativeStrip.clientWidth);
-
-    for (const entry of upcomingEntries.slice(0, visibleCount)) {
-      const item = document.createElement("article");
-      item.className = "initiative-entry";
-      item.dataset.kind = entry.kind;
-      if (entry.defeated) item.classList.add("defeated");
-
-      const image = document.createElement("img");
-      image.src = entry.image;
-      image.alt = "";
-
-      const copy = document.createElement("div");
-      const name = document.createElement("strong");
-      name.textContent = entry.name;
-      const meta = document.createElement("span");
-
-      if (entry.kind === "group") {
-        meta.textContent = opponentCountText(entry.memberCount ?? 1);
-      } else {
-        meta.textContent = "Spieler";
-      }
-
-      copy.append(name, meta);
-      item.append(image, copy);
+    const upcoming = rotateAfterActive(lastInitiativeEntries);
+    const capacity = initiativeCapacity(upcoming.length);
+    const visible = upcoming.slice(0, capacity.visibleCount);
+    const wanted = new Set(visible.map((entry) => entry.id));
+    for (const node of initiativeStrip.querySelectorAll(".initiative-entry")) {
+      if (!wanted.has(node.dataset.entryId)) node.remove();
+    }
+    for (const entry of visible) {
+      let item = Array.from(initiativeStrip.querySelectorAll(".initiative-entry"))
+        .find((node) => node.dataset.entryId === entry.id);
+      if (!item) item = createInitiativeEntry(entry);
+      updateInitiativeEntry(item, entry);
       initiativeStrip.append(item);
     }
+    initiativeStrip.querySelector(".initiative-overflow")?.remove();
+    if (capacity.hiddenCount) {
+      const more = document.createElement("span");
+      more.className = "initiative-overflow";
+      more.textContent = `+${capacity.hiddenCount}`;
+      more.title = `${capacity.hiddenCount} weitere Initiativeeinträge`;
+      initiativeStrip.append(more);
+    }
+  }
+
+  function createInitiativeEntry(entry) {
+    const item = document.createElement("article");
+    item.className = "initiative-entry";
+    item.dataset.entryId = entry.id;
+    const image = document.createElement("img");
+    const copy = document.createElement("div");
+    copy.append(document.createElement("strong"), document.createElement("span"));
+    item.append(image, copy);
+    return item;
+  }
+
+  function updateInitiativeEntry(item, entry) {
+    item.dataset.kind = entry.kind;
+    item.classList.toggle("defeated", Boolean(entry.defeated));
+    const image = item.querySelector("img");
+    setImage(image, entry.image);
+    image.alt = "";
+    item.querySelector("strong").textContent = entry.name;
+    item.querySelector("span").textContent =
+      entry.kind === "group" ? opponentCountText(entry.memberCount ?? 1) : "Spieler";
   }
 
   function rotateAfterActive(entries) {
     if (!entries.length) return [];
     const activeIndex = entries.findIndex((entry) => entry.active);
-    if (activeIndex < 0) return entries;
-    return entries
-      .slice(activeIndex + 1)
-      .concat(entries.slice(0, activeIndex));
+    return activeIndex < 0 ? entries : entries.slice(activeIndex + 1).concat(entries.slice(0, activeIndex));
   }
 
-  function initiativeCapacity(availableWidth) {
-    const styles = getComputedStyle(initiativeStrip);
-    const gap = Number.parseFloat(styles.columnGap || styles.gap) || 0;
-    const minimumEntryWidth = 185;
-    return Math.max(0, Math.floor((availableWidth + gap) / (minimumEntryWidth + gap)));
+  function initiativeCapacity(entryCount) {
+    const style = getComputedStyle(initiativeStrip);
+    const gap = parseFloat(style.columnGap || style.gap) || 0;
+    const padding = (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0);
+    const availableWidth = Math.max(0, initiativeStrip.clientWidth - padding);
+    const cardWidth = 185;
+    const overflowWidth = 58;
+    let visibleCount = Math.min(entryCount, Math.floor((availableWidth + gap) / (cardWidth + gap)));
+    if (visibleCount < entryCount) {
+      visibleCount = Math.max(0, Math.floor((availableWidth - overflowWidth) / (cardWidth + gap)));
+    }
+    return { visibleCount, hiddenCount: Math.max(0, entryCount - visibleCount), availableWidth, cardWidth, gap };
   }
 
-  function renderGroups(groups) {
+  function renderGroups(groups, current) {
     groupsGrid.replaceChildren();
-    const layout = groupGridLayout(groups.length);
+    groupsGrid.dataset.layoutMode = layoutMode;
     groupsGrid.dataset.count = String(groups.length);
-    groupsGrid.style.setProperty("--group-rows", String(layout.rows));
-
-    const rows = chunkGroups(groups, layout.columns);
-    for (const row of rows) {
-      const rowElement = document.createElement("div");
-      rowElement.className = "group-row";
-      for (const group of row) {
-        const card = createGroupCard(group);
-        card.style.setProperty(
-          "--layout-weight",
-          String(normalizedLayoutWeight(group.effectiveLayoutWeight))
-        );
-        rowElement.append(card);
-      }
-      groupsGrid.append(rowElement);
+    if (layoutMode === "focus") {
+      renderFocus(groups, current);
+      return;
+    }
+    const grid = groupGridLayout(groups.length);
+    for (const row of chunkGroups(groups, grid.columns)) {
+      const rowNode = document.createElement("div");
+      rowNode.className = "group-row";
+      for (const group of row) rowNode.append(createGroupCard(group));
+      groupsGrid.append(rowNode);
     }
   }
 
-  function createGroupCard(group) {
+  function renderFocus(groups, current) {
+    const activeGroup = groups.find((group) => group.members?.some((member) => member.id === current?.id || member.active));
+    const activeMember = activeGroup?.members?.find((member) => member.id === current?.id || member.active);
+    if (!activeGroup || !activeMember) {
+      layoutMode = "overview";
+      renderGroups(groups, null);
+      return;
+    }
+    const remaining = groups.filter((group) => group.id !== activeGroup.id);
+    const split = Math.ceil(remaining.length / 2);
+    groupsGrid.append(
+      createFocusRail("left", remaining.slice(0, split)),
+      createFocusCard(activeGroup, activeMember),
+      createFocusRail("right", remaining.slice(split))
+    );
+  }
+
+  function createFocusRail(side, groups) {
+    const rail = document.createElement("div");
+    rail.className = `focus-rail focus-rail-${side}`;
+    for (const group of groups) rail.append(createGroupCard(group, true));
+    return rail;
+  }
+
+  function createFocusCard(group, member) {
+    const card = document.createElement("article");
+    card.className = "focus-card";
+    const image = document.createElement("img");
+    image.className = "focus-image";
+    setImage(image, member.image || group.image);
+    image.alt = member.name || group.name;
+    const shade = document.createElement("div");
+    shade.className = "focus-shade";
+    const header = document.createElement("header");
+    header.className = "focus-header";
+    const title = document.createElement("h2");
+    title.textContent = member.name || group.name;
+    const progress = document.createElement("span");
+    progress.textContent = `${group.name} · ${group.activeMember ?? "?"} von ${group.total}`;
+    header.append(title, progress);
+    const segment = createMemberSegment(member);
+    segment.classList.add("focus-member");
+    card.append(image, shade, header, segment);
+    return card;
+  }
+
+  function createGroupCard(group, compact = false) {
     const card = document.createElement("article");
     card.className = "group-card";
-    if (group.allDefeated) card.classList.add("all-defeated");
-
+    card.classList.toggle("compact", compact);
+    card.classList.toggle("all-defeated", Boolean(group.allDefeated));
+    card.style.setProperty("--layout-weight", String(normalizedLayoutWeight(group.effectiveLayoutWeight)));
     const background = document.createElement("img");
     background.className = "group-background";
-    background.src = group.image;
+    setImage(background, group.image);
     background.alt = "";
-
     const shade = document.createElement("div");
     shade.className = "group-shade";
-
     const header = document.createElement("header");
     header.className = "group-header";
     const title = document.createElement("h2");
@@ -225,17 +265,12 @@
     const count = document.createElement("span");
     count.textContent = `${group.living}/${group.total} aktiv`;
     header.append(title, count);
-
     const memberGrid = document.createElement("div");
     memberGrid.className = "member-grid";
     const layout = memberGridLayout(group.members.length);
     memberGrid.style.setProperty("--columns", String(layout.columns));
     memberGrid.style.setProperty("--rows", String(layout.rows));
-
-    group.members.forEach((member) => {
-      memberGrid.append(createMemberSegment(member));
-    });
-
+    for (const member of group.members) memberGrid.append(createMemberSegment(member));
     card.append(background, shade, header, memberGrid);
     return card;
   }
@@ -244,9 +279,8 @@
     const segment = document.createElement("section");
     segment.className = "member-segment";
     segment.dataset.combatantId = member.id;
-    if (member.active) segment.classList.add("active");
-    if (member.defeated) segment.classList.add("defeated");
-
+    segment.classList.toggle("active", Boolean(member.active));
+    segment.classList.toggle("defeated", Boolean(member.defeated));
     const direction = document.createElement("span");
     direction.className = "direction-indicator";
     direction.dataset.state = member.directionState || "unavailable";
@@ -257,21 +291,14 @@
       direction.textContent = "➤";
       direction.style.setProperty("--direction-angle", `${member.directionAngle}deg`);
       direction.setAttribute("aria-label", "Richtung von der Szenenmitte");
-    } else {
-      direction.hidden = true;
-    }
-
-    const labels = document.createElement("div");
-    labels.className = "member-statuses";
-    for (const status of member.statuses || []) {
-      labels.append(createStatusBadge(status, true));
-    }
-
+    } else direction.hidden = true;
+    const statuses = document.createElement("div");
+    statuses.className = "member-statuses";
+    for (const status of member.statuses || []) statuses.append(createStatusBadge(status, true));
     const state = document.createElement("span");
     state.className = "member-state";
     state.textContent = member.defeated ? "Besiegt" : member.active ? "Am Zug" : "";
-
-    segment.append(direction, labels, state);
+    segment.append(direction, statuses, state);
     return segment;
   }
 
@@ -283,40 +310,23 @@
     return badge;
   }
 
+  function reconcileStatuses(container, statuses) {
+    const signature = statuses.join("|");
+    if (container.dataset.signature === signature) return;
+    container.dataset.signature = signature;
+    container.replaceChildren(...statuses.map((status) => createStatusBadge(status)));
+  }
+
   function readableStatus(status) {
-    const labels = {
-      poisoned: "Vergiftet",
-      prone: "Liegend",
-      restrained: "Festgesetzt",
-      grappled: "Gepackt",
-      stunned: "Betäubt",
-      unconscious: "Bewusstlos",
-      blinded: "Blind",
-      frightened: "Verängstigt",
-      charmed: "Bezaubert",
-      incapacitated: "Handlungsunfähig",
-      paralyzed: "Gelähmt",
-      invisible: "Unsichtbar"
-    };
-    return labels[status] || status;
+    return ({ poisoned: "Vergiftet", prone: "Liegend", restrained: "Festgesetzt", grappled: "Gepackt",
+      stunned: "Betäubt", unconscious: "Bewusstlos", blinded: "Blind", frightened: "Verängstigt",
+      charmed: "Bezaubert", incapacitated: "Handlungsunfähig", paralyzed: "Gelähmt", invisible: "Unsichtbar" })[status] || status;
   }
 
   function statusIcon(status) {
-    const icons = {
-      poisoned: "☠",
-      prone: "↘",
-      restrained: "⛓",
-      grappled: "✊",
-      stunned: "✦",
-      unconscious: "Zz",
-      blinded: "◉",
-      frightened: "!",
-      charmed: "♥",
-      incapacitated: "×",
-      paralyzed: "║",
-      invisible: "◌"
-    };
-    return icons[status] || "◆";
+    return ({ poisoned: "☠", prone: "↘", restrained: "⛓", grappled: "✊", stunned: "✦",
+      unconscious: "Zz", blinded: "◉", frightened: "!", charmed: "♥", incapacitated: "×",
+      paralyzed: "║", invisible: "○" })[status] || "◆";
   }
 
   function memberGridLayout(count) {
@@ -331,8 +341,7 @@
   function groupGridLayout(count) {
     if (count <= 1) return { columns: 1, rows: 1 };
     if (count === 2) return { columns: 2, rows: 1 };
-    if (count === 3) return { columns: 3, rows: 1 };
-    if (count === 4) return { columns: 4, rows: 1 };
+    if (count <= 4) return { columns: count, rows: 1 };
     if (count <= 6) return { columns: 3, rows: 2 };
     if (count <= 8) return { columns: 4, rows: 2 };
     if (count <= 9) return { columns: 3, rows: 3 };
@@ -341,26 +350,30 @@
 
   function chunkGroups(groups, columns) {
     const rows = [];
-    for (let index = 0; index < groups.length; index += columns) {
-      rows.push(groups.slice(index, index + columns));
-    }
+    for (let index = 0; index < groups.length; index += columns) rows.push(groups.slice(index, index + columns));
     return rows;
   }
 
   function normalizedLayoutWeight(value) {
     const weight = Number(value);
-    if (!Number.isFinite(weight)) return 1;
-    return Math.min(2.3, Math.max(0.65, weight));
+    return Number.isFinite(weight) ? Math.min(2.3, Math.max(0.65, weight)) : 1;
   }
 
   function opponentCountText(count) {
     return count === 1 ? "1 Gegner" : `${count} Gegner`;
   }
 
+  function setImage(image, source) {
+    if (source && image.getAttribute("src") !== source) image.src = source;
+  }
+
+  function stableStringify(value) {
+    return JSON.stringify(value, (key, item) => key === "generatedAt" || key === "sentAt" ? undefined : item);
+  }
+
   function updateConnectionState() {
     const age = lastReceivedAt ? Date.now() - lastReceivedAt : Infinity;
     connectionIndicator.classList.remove("connected", "stale", "waiting");
-
     if (age < 8000) {
       connectionIndicator.classList.add("connected");
       connectionIndicator.textContent = "Live verbunden";
@@ -375,11 +388,8 @@
 
   async function toggleFullscreen() {
     try {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
-      } else {
-        await document.documentElement.requestFullscreen();
-      }
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
     } catch (error) {
       console.error("Combat Wall | Vollbild konnte nicht umgeschaltet werden", error);
     }
@@ -388,4 +398,21 @@
   function updateFullscreenButton() {
     fullscreenButton.textContent = document.fullscreenElement ? "Vollbild verlassen" : "Vollbild";
   }
+
+  window.CombatWallDashboard = {
+    inspectLayout() {
+      const capacity = initiativeCapacity(rotateAfterActive(lastInitiativeEntries).length);
+      const details = {
+        layoutMode,
+        containerWidth: capacity.availableWidth,
+        cardWidth: capacity.cardWidth,
+        gap: capacity.gap,
+        visibleInitiativeCards: capacity.visibleCount,
+        activeCombatantId: lastState?.current?.id ?? null,
+        opponentGroups: lastState?.groups?.length ?? 0
+      };
+      console.table([details]);
+      return details;
+    }
+  };
 })();

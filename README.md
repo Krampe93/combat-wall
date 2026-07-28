@@ -1,6 +1,13 @@
-# Combat Wall 0.5.0
+# Combat Wall 0.5.1
 
 Leichtes externes Kampfdashboard für Foundry VTT 14 und D&D5e 5.3.2.
+
+## Bugfixes in Version 0.5.1
+
+- Spieler-Placeholder zeigen öffentlich nur noch `Spielerzug`.
+- Der Fokusmodus verwendet den aktiven konkreten Combatant statt eines Gruppen-Fallbacks.
+- Der individuelle Richtungspfeil liegt vollständig sichtbar mittig über der Fokuskarte und wechselt beim nächsten Gruppenmitglied live mit.
+- Seitliche Gegnersegmente behalten ihre eigenen Pfeile, Status und Combatant-Zuordnungen.
 
 ## Änderungen in Version 0.5.0
 

@@ -48,6 +48,7 @@
     const testParams = new URLSearchParams(location.search);
     const groupCount = Number(testParams.get("groups") || 6);
     const playerTurn = testParams.get("mode") === "overview";
+    const activeMemberIndex = Math.max(0, Math.min(3, Number(testParams.get("member") || 2) - 1));
     const sizes = [
       ["Ratten", "tiny", 0.65],
       ["Kobolde", "small", 0.8],
@@ -82,7 +83,7 @@
         id: `combatant-${groupIndex}-${memberIndex}`,
         name: `${name} ${memberIndex + 1}`,
         image: "../assets/fallback.svg",
-        active: !playerTurn && groupIndex === 2 && memberIndex === 1,
+        active: !playerTurn && groupIndex === 2 && memberIndex === activeMemberIndex,
         defeated: memberIndex === 3,
         statuses: memberIndex === 0 ? ["poisoned"] : [],
         directionState: memberIndex === 2 ? "center" : "direction",
@@ -101,14 +102,18 @@
           image: "../assets/fallback.svg",
           statuses: []
         } : {
-          id: "combatant-2-1",
+          id: `combatant-2-${activeMemberIndex}`,
           kind: "npc",
-          name: "Skelett 2",
+          name: `Skelett ${activeMemberIndex + 1}`,
           image: "../assets/fallback.svg",
+          tokenId: `token-skeleton-${activeMemberIndex + 1}`,
+          groupId: "group-2",
           groupName: "Skelette",
-          groupPosition: 2,
+          groupPosition: activeMemberIndex + 1,
           groupSize: 4,
-          statuses: ["poisoned"]
+          statuses: ["poisoned"],
+          directionState: activeMemberIndex === 2 ? "center" : "direction",
+          directionAngle: activeMemberIndex * 90
         },
         initiative,
         groups

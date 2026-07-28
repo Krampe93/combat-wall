@@ -107,7 +107,7 @@
     currentName.textContent = current.name;
     currentMeta.textContent = current.kind === "npc"
       ? `${current.groupName} · ${current.groupPosition ?? "?"} von ${current.groupSize ?? "?"}`
-      : current.kind === "placeholder" ? "Spielerzug · Initiative-Placeholder" : "Spielerzug";
+      : "Spielerzug";
     reconcileStatuses(currentStatuses, current.statuses || []);
   }
 
@@ -201,8 +201,8 @@
   }
 
   function renderFocus(groups, current) {
-    const activeGroup = groups.find((group) => group.members?.some((member) => member.id === current?.id || member.active));
-    const activeMember = activeGroup?.members?.find((member) => member.id === current?.id || member.active);
+    const activeGroup = groups.find((group) => group.id === current?.groupId);
+    const activeMember = activeGroup?.members?.find((member) => member.id === current?.id);
     if (!activeGroup || !activeMember) {
       layoutMode = "overview";
       renderGroups(groups, null);
@@ -240,10 +240,24 @@
     const progress = document.createElement("span");
     progress.textContent = `${group.name} · ${group.activeMember ?? "?"} von ${group.total}`;
     header.append(title, progress);
-    const segment = createMemberSegment(member);
-    segment.classList.add("focus-member");
-    card.append(image, shade, header, segment);
+    card.append(image, shade, header, createFocusOverlay(member));
     return card;
+  }
+
+  function createFocusOverlay(member) {
+    const overlay = document.createElement("section");
+    overlay.className = "focus-overlay";
+    overlay.dataset.combatantId = member.id;
+    overlay.classList.toggle("defeated", Boolean(member.defeated));
+    const direction = createDirectionIndicator(member, "focus-direction");
+    const statuses = document.createElement("div");
+    statuses.className = "member-statuses focus-statuses";
+    for (const status of member.statuses || []) statuses.append(createStatusBadge(status, true));
+    const state = document.createElement("span");
+    state.className = "member-state focus-state";
+    state.textContent = member.defeated ? "Besiegt" : "Am Zug";
+    overlay.append(direction, statuses, state);
+    return overlay;
   }
 
   function createGroupCard(group, compact = false) {
@@ -281,8 +295,20 @@
     segment.dataset.combatantId = member.id;
     segment.classList.toggle("active", Boolean(member.active));
     segment.classList.toggle("defeated", Boolean(member.defeated));
+    const direction = createDirectionIndicator(member);
+    const statuses = document.createElement("div");
+    statuses.className = "member-statuses";
+    for (const status of member.statuses || []) statuses.append(createStatusBadge(status, true));
+    const state = document.createElement("span");
+    state.className = "member-state";
+    state.textContent = member.defeated ? "Besiegt" : member.active ? "Am Zug" : "";
+    segment.append(direction, statuses, state);
+    return segment;
+  }
+
+  function createDirectionIndicator(member, additionalClass = "") {
     const direction = document.createElement("span");
-    direction.className = "direction-indicator";
+    direction.className = `direction-indicator ${additionalClass}`.trim();
     direction.dataset.state = member.directionState || "unavailable";
     if (member.directionState === "center") {
       direction.textContent = "◎";
@@ -292,14 +318,7 @@
       direction.style.setProperty("--direction-angle", `${member.directionAngle}deg`);
       direction.setAttribute("aria-label", "Richtung von der Szenenmitte");
     } else direction.hidden = true;
-    const statuses = document.createElement("div");
-    statuses.className = "member-statuses";
-    for (const status of member.statuses || []) statuses.append(createStatusBadge(status, true));
-    const state = document.createElement("span");
-    state.className = "member-state";
-    state.textContent = member.defeated ? "Besiegt" : member.active ? "Am Zug" : "";
-    segment.append(direction, statuses, state);
-    return segment;
+    return direction;
   }
 
   function createStatusBadge(status, compact = false) {
@@ -409,6 +428,9 @@
         gap: capacity.gap,
         visibleInitiativeCards: capacity.visibleCount,
         activeCombatantId: lastState?.current?.id ?? null,
+        activeGroupId: lastState?.current?.groupId ?? null,
+        activeTokenId: lastState?.current?.tokenId ?? null,
+        activeDirectionAngle: lastState?.current?.directionAngle ?? null,
         opponentGroups: lastState?.groups?.length ?? 0
       };
       console.table([details]);

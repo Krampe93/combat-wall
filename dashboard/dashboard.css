@@ -346,7 +346,31 @@ button {
 .focus-header { position: absolute; inset: 0 0 auto; z-index: 4; padding: clamp(18px, 2vw, 30px); text-align: center; text-shadow: 0 2px 8px #000; }
 .focus-header h2 { margin: 0; font-size: clamp(2rem, 3vw, 4rem); }
 .focus-header span { color: var(--gold-bright); font-size: clamp(1rem, 1.3vw, 1.4rem); font-weight: 800; }
-.focus-member { position: absolute; inset: 0; border: 0; }
+.focus-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+}
+
+.focus-overlay.defeated::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.67);
+  backdrop-filter: grayscale(1);
+}
+
+.focus-direction {
+  z-index: 5;
+  width: clamp(58px, 5vw, 88px);
+  font-size: clamp(1.8rem, 2.8vw, 3rem);
+}
+
+.focus-statuses,
+.focus-state {
+  z-index: 5;
+}
 .group-card.compact { min-height: 0; }
 .group-card.compact .group-header { padding: 9px 10px; }
 .group-card.compact .group-header h2 { max-width: 65%; overflow: hidden; font-size: clamp(0.9rem, 1.15vw, 1.35rem); text-overflow: ellipsis; white-space: nowrap; }

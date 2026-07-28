@@ -1,4 +1,12 @@
-# Combat Wall 0.7.0
+# Combat Wall 0.7.1
+
+## Bugfixes in Version 0.7.1
+
+- D&D5e-Kurzwerte `sm`, `med`, `lg` und `grg` werden korrekt normalisiert.
+- Größenquelle und roher Actor-Wert erscheinen in der Layoutdiagnose.
+- Das gewichtete Layout verteilt die Kachelfläche tatsächlich nach Kreaturengröße.
+- Seitenkacheln im Fokusmodus verwenden Kreaturengewichte auch für ihre Höhe.
+- Der Gruppenfortschritt folgt strikt der sortierten Foundry-Turn-Reihenfolge.
 
 Leichtes externes Kampfdashboard für Foundry VTT 14 und D&D5e 5.3.2.
 

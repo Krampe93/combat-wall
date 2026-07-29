@@ -1,4 +1,16 @@
-# Combat Wall 1.0.2
+# Combat Wall 1.0.2.1
+
+## Dead Display Fix in Version 1.0.2.1
+
+Besiegte Einzelmitglieder einer noch aktiven Gruppe werden nur noch intern
+gezählt. Sie erzeugen keine Segmente, Marker, Statuspunkte oder Active-Effects-
+Darstellung. Der Gruppenzähler zeigt weiterhin das Verhältnis der lebenden zur
+gesamten Mitgliederzahl, beispielsweise `2/3 aktiv`.
+
+Vollständig besiegte Gruppen bleiben als einzelne, deaktivierte Übersichtskachel
+sichtbar. Die Kachel verwendet ein durchgehend graues Bild, einen integrierten
+Namen und genau ein „Besiegt“-Overlay ohne separate Kopfzeile. Ein zusätzlicher
+Fokus-Guard verhindert, dass tote NPCs über einen Fallback in die Mitte gelangen.
 
 ## Besiegte Gegner und Fokuswechsel in Version 1.0.2
 

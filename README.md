@@ -1,4 +1,17 @@
-# Combat Wall 0.9.0
+# Combat Wall 1.0.0
+
+## Zustände und Bloodied in Version 1.0.0
+
+Der aktive Gegner zeigt seine von Foundry gelieferten Active Effects im unteren
+Bereich des Fokusfensters. Bekannte D&D5e-Zustände werden auf Deutsch dargestellt;
+vorhandene Rundendauern werden übernommen, unbekannte Zustände behalten ihren
+Foundry-Namen.
+
+Gegner mit höchstens 50 Prozent ihrer maximalen Trefferpunkte gelten als
+angeschlagen (`Bloodied`). Im Fokus erhalten sie eine deutliche, ruhige rote
+Rahmung – ohne Trefferpunkte oder Lebensbalken offenzulegen. Die Marker-Daten
+enthalten den Bloodied-Zustand außerdem bereits pro Gruppenmitglied, ohne dessen
+Identitätsfarbe zu verändern.
 
 ## Positionsmarker und neue Initiative in Version 0.9.1
 

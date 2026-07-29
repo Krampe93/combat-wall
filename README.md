@@ -1,4 +1,17 @@
-# Combat Wall 1.0.0
+# Combat Wall 1.0.1
+
+## Fokus-Zustände in Version 1.0.1
+
+Active Effects werden ausschließlich für den aktuell aktiven Gegner im unteren
+Bereich des Fokusfensters angezeigt. Nebenfenster und Gruppenbilder enthalten
+keine Statusicons mehr. Im Fokus erscheinen der deutsche Zustandsname und, falls
+Foundry eine Dauer liefert, die verbleibenden Runden oder Züge. Ohne Active
+Effects wird „Keine Zustände“ angezeigt.
+
+Die von Foundry eingelesenen Zustände bleiben weiterhin pro Combatant in
+`activeEffects` und `statuses` gespeichert. Der Hotfix ändert nur die sichtbare
+Darstellung; die eindeutige interne Zuordnung der Gruppenmitglieder bleibt
+erhalten.
 
 ## Zustände und Bloodied in Version 1.0.0
 

@@ -1,6 +1,10 @@
 # Combat Wall 0.9.0
 
-## Positionsmarker und neue Initiative in Version 0.9.0
+## Positionsmarker und neue Initiative in Version 0.9.1
+
+Patch 0.9.1 blendet redundante `1/1 aktiv`-Angaben bei Einzelgegnern aus
+und entfernt die sichtbaren Segment-Hilfslinien. Gruppenanzeigen,
+Positionsmarker, Fokusmodus und aktive Hervorhebungen bleiben unverändert.
 
 - Die separate Kachel „Aktuell am Zug“ wurde entfernt. Die Initiative nutzt die
   gesamte Kopfbreite; der aktive öffentliche Eintrag steht zuerst und ist größer.

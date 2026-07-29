@@ -1,4 +1,15 @@
-# Combat Wall 1.0.1
+# Combat Wall 1.0.2
+
+## Besiegte Gegner und Fokuswechsel in Version 1.0.2
+
+Besiegte Gegner bleiben als Teil der Encounter-Übersicht sichtbar, werden aber
+ausschließlich in Combat Wall aus der aktiven Zugreihenfolge und Fokuswahl
+entfernt. Foundry-Combatants und Foundrys Initiative werden nicht verändert.
+
+Stirbt der aktuell dargestellte Gegner, wählt Combat Wall zyklisch den nächsten
+sichtbaren, gültigen Combatant für die Anzeige. Vollständig besiegte Gruppen
+erhalten eine einheitlich graue Karte mit integriertem Namen und sichtbarem
+„Besiegt“-Status, ohne abgesetzte Kopfzeile oder farbige Positionsmarker.
 
 ## Fokus-Zustände in Version 1.0.1
 

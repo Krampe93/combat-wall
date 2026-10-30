@@ -1,0 +1,21 @@
+name: Validate module
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate current code and behavior
+        run: |
+          node --check scripts/main-1.1.0.js
+          node --check dashboard/dashboard-1.1.0.js
+          node --test tests/conditions-1.1.0.test.js
+          node tests/version-1.1.0.test.js

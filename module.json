@@ -8,7 +8,7 @@
       "name": "Krampe & OpenAI"
     }
   ],
-  "version": "1.0.2.1",
+  "version": "1.1.0",
   "compatibility": {
     "minimum": "14",
     "verified": "14",
@@ -24,17 +24,25 @@
           "verified": "5.3.2"
         }
       }
+    ],
+    "recommends": [
+      {
+        "id": "gm-combat-workspace",
+        "type": "module",
+        "compatibility": { "minimum": "0.15.0" },
+        "reason": "Optional editor for player/enemy conditions with linked counterpart displays."
+      }
     ]
   },
   "esmodules": [
-    "scripts/main-1.0.2.1.js"
+    "scripts/main-1.1.0.js"
   ],
   "styles": [
     "styles/module.css"
   ],
   "url": "https://github.com/Krampe93/combat-wall",
   "manifest": "https://raw.githubusercontent.com/Krampe93/combat-wall/main/module.json",
-  "download": "https://github.com/Krampe93/combat-wall/releases/download/v1.0.2.1/combat-wall-1.0.2.1.zip",
+  "download": "https://github.com/Krampe93/combat-wall/releases/download/v1.1.0/combat-wall-1.1.0.zip",
   "readme": "README.md",
   "license": "LICENSE"
 }

@@ -15,6 +15,18 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate release
+        run: |
+          node --check scripts/main-1.1.0.js
+          node --check dashboard/dashboard-1.1.0.js
+          node --test tests/conditions-1.1.0.test.js
+          node tests/version-1.1.0.test.js
+          node -e 'const m=require("./module.json"); if (`v${m.version}` !== process.env.GITHUB_REF_NAME) process.exit(1)'
+
       - name: Build module archive
         shell: bash
         run: |
@@ -22,12 +34,13 @@ jobs:
           version="${GITHUB_REF_NAME#v}"
           archive="combat-wall-${version}.zip"
           zip -r "$archive" \
-            module.json README.md LICENSE \
+            module.json README.md TESTING.md LICENSE \
             assets dashboard scripts styles
           echo "ARCHIVE=$archive" >> "$GITHUB_ENV"
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
+          draft: true
           files: ${{ env.ARCHIVE }}
           generate_release_notes: true

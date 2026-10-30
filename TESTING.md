@@ -1,0 +1,13 @@
+# Gemeinsamer Test: Combat Wall 1.1.0 und GM Combat Workspace 0.15.0
+
+Beide Module aktualisieren, einmal das Foundry-Hauptfenster neu laden und Workspace sowie Combat Wall neu öffnen. Bestehende Testarena mit Zane, mindestens zwei Goblins/Skeletons und den bisherigen Spezialgegnern weiterverwenden.
+
+1. Im Workspace unter den Reaktionen Zane anklicken. „Gepackt“ mit Goblin 1 als Verursacher speichern. **Einmal setzen** muss beide Anzeigen erzeugen: Zane „Gepackt von Goblin 1“, Goblin „Packt gerade Zane“. Auf der Combat Wall Spielerfokus/Initiative und Gegnerkachel prüfen.
+2. Ohne Zugwechsel die Quelle auf Goblin 2 ändern. Die Gegenanzeige wechselt zum richtigen Token; Goblin 1 zeigt sie nicht mehr. Danach den Zustand auf Zane entfernen: beide Anzeigen verschwinden gemeinsam. „Ohne Quelle“ löst nur die Beziehung und behält den normalen Zustand.
+3. Umgekehrte Richtung: Goblin „Gepackt“ durch Zane. Goblin zeigt „Gepackt von Zane“, Zane „Packt gerade Goblin …“. Beide Anzeigen müssen live aktualisieren. Wenn beide Richtungen separat gelten, darf das Entfernen einer davon die andere nicht löschen.
+4. Zwischen Spieler- und Gegnerzug wechseln sowie Fenster erneut öffnen. Zustände erscheinen im jeweiligen Fokus; Dauer und normale Effekte bleiben erhalten. Gleiche Gegnernamen und Gruppen dürfen die konkrete Tokenzuordnung nicht vermischen.
+5. Bei Spieler-Placeholdern nur eindeutige Charakternamen zuordnen. Verborgene Gegner bleiben verborgen; ihre Namen dürfen nicht über einen Zustand auf der Wall sichtbar werden. Fehlende oder mehrdeutige Endpunkte erzeugen keine Zuordnung zu einem falschen Teilnehmer.
+6. Besiegte Mitglieder, vollständig besiegte Gruppen, Bloodied, farbige Positionsmarker, aktive Ringe und Gruppenreihenfolge gemäß den bisherigen Tests kurz gegenprüfen. Kleine Fenster: Spielername und Zustände überdecken sich nicht; die Seite bekommt keinen äußeren Scrollbalken.
+7. Im Workspace bleiben alle noch offenen Recovery-, Reaktions-, Recharge-, legendären und Initiativprüfungen aus den früheren Testpaketen offen und werden in diesem gemeinsamen Durchlauf mitgenommen.
+
+Lokale Prüfung: zehn gezielte automatisierte Beziehungstests; bestehende Regressionen für Besiegt/Bloodied/native Effekte in der aktuellen 1.1.0-Prüfung erfolgreich. Zwei Browserseiten mit echtem BroadcastChannel nutzen den produktiven Workspace-Zustandsservice, Combat-Wall-Serializer und das Dashboard: beide Anzeigen, Quellenwechsel ohne Zugwechsel, gemeinsame Entfernung, Gegenrichtung, Spielerfokus, Initiative, 1280×720 und verborgene Quelle geprüft. Der Live-Test in Tims Foundry-Welt ist noch offen.

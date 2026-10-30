@@ -1,4 +1,17 @@
-# Combat Wall 1.0.2.1
+# Combat Wall 1.1.0
+
+## Verknüpfte Zustände auf beiden Seiten
+
+Zusammen mit **GM Combat Workspace 0.15.0** werden Zustandsbeziehungen automatisch auf beiden Teilnehmern angezeigt. Einmal bei Zane „Gepackt“ mit Goblin als Verursacher setzen genügt:
+
+- Zane: **Gepackt von Goblin**.
+- Goblin: **Packt gerade Zane**.
+
+Beide Texte erscheinen in der Initiative und an den zugehörigen sichtbaren Fokus-/Gegnerkacheln. Auch der aktive Spieler zeigt jetzt seine Zustände im Fokus. Quellenwechsel und Entfernen aktualisieren beide Seiten ohne Zugwechsel. Die Gegenanzeige stammt aus derselben gespeicherten Beziehung; sie benötigt keine separate Pflege.
+
+Combat Wall liest `game.modules.get("gm-combat-workspace").api.getConditionRelations()` und kann ersatzweise die Quellen unter `effect.flags["gm-combat-workspace"].conditionSources` lesen. Einzelne Gegner-Token bleiben unterscheidbar. Sichtbare Spieler-Placeholder können bei eindeutigem Namen dem Welt-Charakter zugeordnet werden. Verborgene Endpunkte werden nicht namentlich im öffentlichen Dashboard offengelegt. Normale Effekte, Dauer, Bloodied, Marker und die Besiegt-Darstellung bleiben erhalten.
+
+**Beide Module aktualisieren, anschließend einmal das Foundry-Hauptfenster neu laden und beide Zusatzfenster neu öffnen.** Gemeinsame Abnahme in [TESTING.md](TESTING.md).
 
 ## Dead Display Fix in Version 1.0.2.1
 

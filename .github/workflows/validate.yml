@@ -19,3 +19,4 @@ jobs:
           node --check dashboard/dashboard-1.1.0.js
           node --test tests/conditions-1.1.0.test.js
           node tests/version-1.1.0.test.js
+          node tests/defeated-area.test.js

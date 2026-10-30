@@ -326,6 +326,7 @@
     for (const group of groups) {
       const card = groupsGrid.querySelector(`[data-group-id="${CSS.escape(group.id)}"]`);
       if (!card) continue;
+      updateDefeatedArea(card, group);
       const count = card.querySelector(".group-header span");
       if (count) {
         count.hidden = group.total <= 1 || group.allDefeated;
@@ -359,7 +360,10 @@
       const overlay = groupsGrid.querySelector(".focus-overlay");
       if (overlay) overlay.replaceWith(createFocusOverlay(activeMember ?? current));
       if (focusCard) focusCard.classList.toggle("bloodied", Boolean(activeMember?.isBloodied));
-      if (focusCard && activeGroup) reconcileMarkerLayer(focusCard, activeGroup.groupMarkers || []);
+      if (focusCard && activeGroup) {
+        updateDefeatedArea(focusCard, activeGroup);
+        reconcileMarkerLayer(focusCard, activeGroup.groupMarkers || []);
+      }
     }
   }
 
@@ -430,7 +434,7 @@
       ? `${group.name} · ${group.activeGroupPosition ?? group.activeMember ?? "?"} von ${group.activeGroupCount ?? group.actionableMembers ?? group.total}`
       : "";
     header.append(title, progress);
-    card.append(image, shade, header, createMarkerLayer(group.groupMarkers || []), createFocusOverlay(member));
+    card.append(image, shade, header, createFocusOverlay(member), createDefeatedArea(group), createMarkerLayer(group.groupMarkers || []));
     return card;
   }
 
@@ -506,6 +510,34 @@
     return item;
   }
 
+  // A single full-height area covers header and image consistently in every layout.
+  function defeatedRatio(group) {
+    const totalMembers = Number(group.totalMembers ?? group.total ?? 0);
+    if (!Number.isFinite(totalMembers) || totalMembers <= 0) return 0;
+    const defeatedMembers = Number(group.defeated ??
+      (totalMembers - (group.activeMembers ?? group.living ?? totalMembers)));
+    return Number.isFinite(defeatedMembers)
+      ? Math.max(0, Math.min(1, defeatedMembers / totalMembers)) : 0;
+  }
+
+  function updateDefeatedArea(card, group) {
+    const area = card.querySelector(":scope > .defeated-area");
+    if (!area) return;
+    const ratio = defeatedRatio(group);
+    area.style.width = `${ratio * 100}%`;
+    area.hidden = ratio === 0;
+  }
+
+  function createDefeatedArea(group) {
+    const area = document.createElement("div");
+    area.className = "defeated-area";
+    area.setAttribute("aria-hidden", "true");
+    const ratio = defeatedRatio(group);
+    area.style.width = `${ratio * 100}%`;
+    area.hidden = ratio === 0;
+    return area;
+  }
+
   function createGroupCard(group, compact = false) {
     const card = document.createElement("article");
     card.className = "group-card";
@@ -542,7 +574,7 @@
     defeatedOverlay.textContent = "Besiegt";
     defeatedOverlay.hidden = !group.allDefeated;
     const markers = group.allDefeated ? [] : (group.groupMarkers || []);
-    card.append(background, shade, header, memberGrid, defeatedOverlay, createMarkerLayer(markers), createConditionLinkList(groupConditionLinks(group)));
+    card.append(background, shade, header, memberGrid, createDefeatedArea(group), defeatedOverlay, createMarkerLayer(markers), createConditionLinkList(groupConditionLinks(group)));
     return card;
   }
 

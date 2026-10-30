@@ -505,22 +505,19 @@ button {
     filter 300ms ease;
 }
 
-.group-card.all-defeated {
-  filter: grayscale(1);
-  opacity: 0.72;
-  background: #303030;
+/* One continuous area above header/image, below the unchanged marker layer.
+   Percentage sizing needs no measurements or animation during resize/focus. */
+.defeated-area {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 4;
+  pointer-events: none;
+  backdrop-filter: grayscale(1);
+  background: rgba(40, 40, 40, 0.28);
 }
 
-.group-card.all-defeated .group-shade {
-  background: rgba(30, 30, 30, 0.7);
-}
-
-.group-card.all-defeated .group-header {
-  z-index: 7;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  color: rgba(255, 255, 255, 0.78);
+.defeated-area[hidden] {
+  display: none;
 }
 
 .group-card.all-defeated .group-header span {

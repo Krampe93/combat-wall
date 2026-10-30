@@ -58,6 +58,9 @@ test("a single link displays Gepackt von on the player and Packt gerade on the N
 
 test("changing the source moves the counterpart to the correct same-name NPC token", () => {
   const arenaState = arena({ second: true });
+  arenaState.relation.source.combatId = "previous-encounter";
+  assert.equal(arenaState.context.buildDashboardState().current.activeEffects[0].label, "Gepackt von Goblin 1",
+    "the same persistent token remains identifiable after a different encounter document is opened");
   arenaState.relation.source = { uuid: arenaState.goblinB.token.uuid, tokenUuid: arenaState.goblinB.token.uuid, name: "Goblin 2" };
   const state = arenaState.context.buildDashboardState();
   assert.equal(state.current.activeEffects[0].label, "Gepackt von Goblin 2");

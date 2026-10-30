@@ -834,8 +834,8 @@ function readConditionRelations(combat, turns) {
 function applyConditionLinks(members, combat, turns) {
   for (const member of members) member.conditionLinks = [];
   const findMember = ref => {
-    if (ref.combatId && ref.combatId !== combat.id) return null;
     if (ref.tokenUuid) return members.find(member => member.tokenUuid === ref.tokenUuid) ?? null;
+    if (ref.combatId && ref.combatId !== combat.id) return null;
     if (ref.combatantId) return members.find(member => member.id === ref.combatantId) ?? null;
     const uuid = ref.actorUuid ?? (String(ref.uuid).startsWith("Actor.") ? ref.uuid : null);
     if (String(ref.uuid).startsWith("Scene.")) return members.find(member => member.tokenUuid === ref.uuid) ?? null;

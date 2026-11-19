@@ -213,3 +213,7 @@ https://raw.githubusercontent.com/Krampe93/combat-wall/main/module.json
 ```
 
 Nach dem Update die Welt vollständig neu laden und das Dashboard neu öffnen.
+
+## Mitgelieferte Spielerbilder
+Die sechs unveränderten PNG-Zuschnitte sind als Standard-Fokusbilder für Nova, Zane, Orsik (auch Flab), Ray, Lichtwölkchen und Pyro hinterlegt. Eigene Bildzuordnungen und Fokusbild-Flags haben weiterhin Vorrang. Das Entfernen einer eigenen Zuordnung stellt das mitgelieferte Standardbild wieder her.
+

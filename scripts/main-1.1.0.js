@@ -284,7 +284,17 @@ async function openPlayerImageDialog() {
 }
 
 function getPlayerImageMapping() {
-  return game.settings?.get(MODULE_ID, PLAYER_IMAGE_SETTING) ?? {};
+  return {
+    nova: "modules/combat-wall/assets/portraits/nova.png",
+    zane: "modules/combat-wall/assets/portraits/zane.png",
+    orsik: "modules/combat-wall/assets/portraits/orsik.png",
+    flab: "modules/combat-wall/assets/portraits/orsik.png",
+    ray: "modules/combat-wall/assets/portraits/ray.png",
+    lichtwolkchen: "modules/combat-wall/assets/portraits/lichtwoelkchen.png",
+    lichtwoelkchen: "modules/combat-wall/assets/portraits/lichtwoelkchen.png",
+    pyro: "modules/combat-wall/assets/portraits/pyro.png",
+    ...(game.settings?.get(MODULE_ID, PLAYER_IMAGE_SETTING) ?? {})
+  };
 }
 
 function normalizedPlayerKey(name) {

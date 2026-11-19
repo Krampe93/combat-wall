@@ -164,3 +164,21 @@ assert.equal(poisoned[0].label, "Vergiftet");
 assert.equal(poisoned[0].durationLabel, "2 Runden");
 
 console.log("Combat Wall 1.1.0 dead display checks passed.");
+
+// Bundled player portraits resolve by normalized name, preserving world overrides.
+for (const [name, file] of Object.entries({
+  Nova: "nova", Zane: "zane", Orsik: "orsik", Flab: "orsik", Ray: "ray",
+  "Lichtwölkchen": "lichtwoelkchen", Lichtwoelkchen: "lichtwoelkchen", Pyro: "pyro"
+})) {
+  const image = context.getPlayerImageMapping()[context.normalizedPlayerKey(name)];
+  assert.equal(image, `modules/combat-wall/assets/portraits/${file}.png`);
+  assert.ok(fs.existsSync(path.join(root, "assets", "portraits", `${file}.png`)));
+  const combatant = { id: "portrait-player", getFlag() {} };
+  const member = { id: combatant.id, name, kind: "placeholder", image: null };
+  assert.ok(context.buildCurrentEntry(combatant, [member], []).focusImage.endsWith(`/${file}.png`));
+}
+context.game.settings = { get: () => ({ orsik: "custom/orsik.png" }) };
+assert.equal(context.getPlayerImageMapping().orsik, "custom/orsik.png");
+const portraitPlayer = { id: "portrait-player", getFlag: () => "custom/flag.png" };
+assert.ok(context.buildCurrentEntry(portraitPlayer, [{ id: portraitPlayer.id, name: "Orsik", kind: "placeholder" }], []).focusImage.endsWith("/custom/flag.png"));
+console.log("Bundled player portrait resolution and overrides passed.");

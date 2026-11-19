@@ -1,4 +1,14 @@
-# Combat Wall 1.1.1
+# Combat Wall 1.1.2
+
+## Korrigierte Spielerbilder und unsichtbare Gegner
+
+Spielerporträts erscheinen jetzt sowohl in der Zugreihenfolge als auch im Fokus. Vollständige Namen wie **Nova Schaltkreis** werden erkannt. **Ziggs verwendet Rays Bild**, **Flab verwendet Orsiks Bild**. Eigene Bildzuordnungen und Fokusbild-Flags behalten Vorrang.
+
+Vor dem ersten Zug zeigt die Mitte eine ausdrücklich beschriftete Spielervorschau. Der Kampf wird dadurch nicht gestartet und die Initiative nicht weitergeschaltet. Fehlende oder nicht ladbare Bilder erhalten ein Ersatzbild statt einer kaputten Grafik.
+
+Unter **Spieleinstellungen → Moduleinstellungen → Combat Wall** gibt es **Unsichtbare Gegner in Combat Wall anzeigen**. Die Option ist standardmäßig eingeschaltet. Damit erscheinen auch auf der Battlemap oder im Kampftracker verborgene Gegner in der Wall, einschließlich Initiative, Fokus, Positionsmarkern und Zustandsbeziehungen. Die Sichtbarkeit der Token auf der Battlemap wird nicht verändert. Wird die Option ausgeschaltet, werden diese Gegner wieder vollständig aus der Wall ausgeblendet. Verborgene Spieler werden weiterhin ausgeblendet.
+
+Nach dem Update das Foundry-Hauptfenster neu laden und Combat Wall erneut öffnen.
 
 ## Spielerbilder für die Placeholder
 

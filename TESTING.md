@@ -1,4 +1,13 @@
-# Gemeinsamer Test: Combat Wall 1.1.0 und GM Combat Workspace 0.15.0
+# Gemeinsamer Test: Combat Wall 1.1.2 und GM Combat Workspace 0.15.0
+
+## Spielerbilder und unsichtbare Gegner in 1.1.2
+
+- Einen vorbereiteten Kampf ohne aktiven Zug mit Orsik, Nova Schaltkreis, Ziggs und Lichtwölkchen öffnen. Initiative und gekennzeichnete Vorschau müssen die Porträts zeigen. Ziggs verwendet Ray; Flab verwendet Orsik.
+- Kampf starten, Spielerzüge wechseln und wieder zur Vorbereitung zurückkehren. Name, Porträt und Zustände müssen mitwechseln; keine leere oder veraltete Spielerkarte darf stehen bleiben.
+- Gegner-Token auf der Battlemap unsichtbar lassen. Mit aktivierter Moduleinstellung „Unsichtbare Gegner in Combat Wall anzeigen“ erscheinen sie trotzdem in Übersicht, Initiative und Fokus, mit Positionsmarkern und Zustandsbeziehungen. Die Einstellung ausschalten: Gegner und zugehörige Beziehungstexte verschwinden aus der Wall. Die Token bleiben in beiden Fällen auf der Battlemap unsichtbar.
+- Eigene Spielerbilder behalten Vorrang; fehlende Dateien erhalten ein Ersatzbild. Verborgene Spieler bleiben auch bei eingeschalteter Gegneroption verborgen.
+
+Automatisierte Zustands-, Porträt-, Sichtbarkeits- und Besiegt-Prüfungen laufen gegen die produktiven Dateien von 1.1.2. Ein lokaler Browsertest lädt die echten PNG-Dateien unter einem Foundry-URL-Präfix und prüft Vorschau, Spielerwechsel, Zustände und Ersatzbilder. Die Abnahme in der laufenden Foundry-Welt bleibt separat.
 
 Beide Module aktualisieren, einmal das Foundry-Hauptfenster neu laden und Workspace sowie Combat Wall neu öffnen. Bestehende Testarena mit Zane, mindestens zwei Goblins/Skeletons und den bisherigen Spezialgegnern weiterverwenden.
 

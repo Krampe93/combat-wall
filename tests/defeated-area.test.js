@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const source = fs.readFileSync(require('node:path').join(__dirname, '../dashboard/dashboard-1.1.0.js'), 'utf8');
+const source = fs.readFileSync(require('node:path').join(__dirname, '../dashboard/dashboard-1.1.1.js'), 'utf8');
 const functions = source.slice(source.indexOf('  function defeatedRatio('), source.indexOf('  function createGroupCard('));
 const context = vm.createContext({ document: { createElement() { return { style: {}, setAttribute() {} }; } } });
 vm.runInContext(functions, context);

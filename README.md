@@ -1,4 +1,10 @@
-# Combat Wall 1.1.0
+# Combat Wall 1.1.1
+
+## Spielerbilder für die Placeholder
+
+Die sechs Originalzuschnitte sind im Modul enthalten und werden automatisch anhand des Spielernamens als Fokusbilder verwendet: Nova, Zane, Orsik, Ray, Lichtwölkchen und Pyro. Der frühere Name Flab verwendet ebenfalls das Orsik-Bild. Eigene Bildzuordnungen und Fokusbild-Flags behalten Vorrang. Die Bilddateien wurden nicht verändert.
+
+Nach dem Update das Foundry-Hauptfenster neu laden und Combat Wall erneut öffnen.
 
 ## Verknüpfte Zustände auf beiden Seiten
 

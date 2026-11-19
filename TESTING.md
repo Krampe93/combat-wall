@@ -11,3 +11,9 @@ Beide Module aktualisieren, einmal das Foundry-Hauptfenster neu laden und Worksp
 7. Im Workspace bleiben alle noch offenen Recovery-, Reaktions-, Recharge-, legendären und Initiativprüfungen aus den früheren Testpaketen offen und werden in diesem gemeinsamen Durchlauf mitgenommen.
 
 Lokale Prüfung: zehn gezielte automatisierte Beziehungstests; bestehende Regressionen für Besiegt/Bloodied/native Effekte in der aktuellen 1.1.0-Prüfung erfolgreich. Zwei Browserseiten mit echtem BroadcastChannel nutzen den produktiven Workspace-Zustandsservice, Combat-Wall-Serializer und das Dashboard: beide Anzeigen, Quellenwechsel ohne Zugwechsel, gemeinsame Entfernung, Gegenrichtung, Spielerfokus, Initiative, 1280×720 und verborgene Quelle geprüft. Der Live-Test in Tims Foundry-Welt ist noch offen.
+
+## Spielerbilder in 1.1.1
+
+Automatisch geprüft: alle sechs Standardbilder, der Alias Flab → Orsik, die Schreibweisen Lichtwölkchen/Lichtwoelkchen, vorhandene PNG-Dateien, Fokusdarstellung sowie Vorrang eigener Weltzuordnungen und Combatant-Flags. Die bisherigen Zustands- und Besiegt-Prüfungen laufen gegen 1.1.1.
+
+In Foundry nach dem Update das Hauptfenster neu laden und Combat Wall erneut öffnen. Bei den sechs Spieler-Placeholdern ohne eigene Bildzuordnung jeweils den Zug aktivieren und das zugehörige Porträt prüfen. Ein bestehendes eigenes Fokusbild muss weiterhin angezeigt werden.

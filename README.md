@@ -1,8 +1,17 @@
-# Combat Wall 1.1.2
+# Combat Wall 1.1.4
+
+## Spieler & Zustände – dauerhaft rechts oben
+
+Alle sichtbaren Spieler und Initiative-Placeholder des Encounters stehen jetzt mit Portrait, Namen und Zustand in einer eigenen Übersicht rechts oben. Die Übersicht bleibt auch während Gegnerzügen sichtbar und aktualisiert sich ohne Zugwechsel. Sie umfasst alle Spieler unabhängig vom Platz in der Zugleiste; größere Gruppen können innerhalb des Fensters gescrollt werden.
+
+Zustände, Verursacher und Gegenanzeigen werden weiterhin im GM Combat Workspace 0.16.2 bearbeitet und live angezeigt. Dieses Modul benötigt für die Übersicht kein weiteres Update. „Keine Zustände“ kennzeichnet Spieler ohne Status. Verborgene Spieler bleiben ausgeblendet; besiegte Spieler bleiben sichtbar.
+
+Die Korrekturen aus 1.1.3 bleiben enthalten: Ziggs heißt in der Wall Ray, vollständiges Fokusportrait, Namenszeile unter dem Bild und klare Trennung zwischen Spieler-Placeholdern und Gegnerkacheln. Details und Testschritte in PLAYER-OVERVIEW.md.
+
 
 ## Korrigierte Spielerbilder und unsichtbare Gegner
 
-Spielerporträts erscheinen jetzt sowohl in der Zugreihenfolge als auch im Fokus. Vollständige Namen wie **Nova Schaltkreis** werden erkannt. **Ziggs verwendet Rays Bild**, **Flab verwendet Orsiks Bild**. Eigene Bildzuordnungen und Fokusbild-Flags behalten Vorrang.
+Spielerporträts erscheinen jetzt sowohl in der Zugreihenfolge als auch im Fokus. Vollständige Namen wie **Nova Schaltkreis** werden erkannt. **Ziggs wird als Ray mit Rays Bild angezeigt**, **Flab verwendet Orsiks Bild**. Eigene Bildzuordnungen und Fokusbild-Flags behalten Vorrang.
 
 Vor dem ersten Zug zeigt die Mitte eine ausdrücklich beschriftete Spielervorschau. Der Kampf wird dadurch nicht gestartet und die Initiative nicht weitergeschaltet. Fehlende oder nicht ladbare Bilder erhalten ein Ersatzbild statt einer kaputten Grafik.
 

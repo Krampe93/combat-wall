@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>Combat Wall</title>
-  <link rel="stylesheet" href="dashboard-1.1.3.css?v=1.1.3">
+  <link rel="stylesheet" href="dashboard-1.1.4.css?v=1.1.4">
 </head>
 <body>
   <main id="app" class="app waiting">
@@ -24,6 +24,15 @@
         </div>
         <div id="initiative-strip" class="initiative-strip"></div>
       </section>
+      <section class="players-panel" aria-labelledby="players-heading">
+        <header class="players-heading">
+          <h2 id="players-heading">Spieler &amp; Zustände</h2>
+          <span id="player-count" aria-label="Anzahl Spieler">0</span>
+        </header>
+        <div id="player-list" class="player-list" role="region" aria-label="Spieler und Placeholder im Encounter" tabindex="0">
+          <p class="player-summary-empty">Warte auf Encounter</p>
+        </div>
+      </section>
     </header>
 
     <section id="empty-state" class="empty-state">
@@ -39,6 +48,6 @@
     </details>
   </main>
 
-  <script src="dashboard-1.1.3.js?v=1.1.3"></script>
+  <script src="dashboard-1.1.4.js?v=1.1.4"></script>
 </body>
 </html>

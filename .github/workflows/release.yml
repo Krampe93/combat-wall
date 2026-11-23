@@ -21,11 +21,11 @@ jobs:
 
       - name: Validate release
         run: |
-          node --check scripts/main-1.1.3.js
-          node --check dashboard/dashboard-1.1.3.js
-          node --test tests/conditions-1.1.3.test.js
-          node --test tests/placeholder-1.1.3.test.js
-          node tests/version-1.1.3.test.js
+          node --check scripts/main-1.1.4.js
+          node --check dashboard/dashboard-1.1.4.js
+          node --test tests/conditions-1.1.4.test.js
+          node --test tests/placeholder-1.1.4.test.js
+          node tests/version-1.1.4.test.js
           node tests/defeated-area.test.js
           node -e 'const m=require("./module.json"); if (`v${m.version}` !== process.env.GITHUB_REF_NAME) process.exit(1)'
 
@@ -36,7 +36,7 @@ jobs:
           version="${GITHUB_REF_NAME#v}"
           archive="combat-wall-${version}.zip"
           zip -r "$archive" \
-            module.json README.md TESTING.md PLACEHOLDER-PATCH.md LICENSE \
+            module.json README.md TESTING.md PLACEHOLDER-PATCH.md PLAYER-OVERVIEW.md LICENSE \
             assets dashboard scripts styles
           echo "ARCHIVE=$archive" >> "$GITHUB_ENV"
 

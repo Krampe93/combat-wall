@@ -1,6 +1,6 @@
-# Aktuelle Ergänzung 1.1.5
+# Aktuelle Ergänzung 1.1.6
 
-Die aktuelle automatisierte Prüfung steht in .github/workflows/validate.yml. Die Tests conditions-1.1.5.test.js und placeholder-1.1.5.test.js prüfen 46 Fälle; version-1.1.5.test.js und defeated-area.test.js prüfen außerdem Paketversion und Gegnerdarstellung. Die Schritte für die Live-Abnahme der neuen Übersicht stehen in PLAYER-OVERVIEW.md.
+Die aktuelle automatisierte Prüfung steht in .github/workflows/validate.yml. Die Tests conditions-1.1.6.test.js und placeholder-1.1.6.test.js prüfen 49 Fälle; version-1.1.6.test.js und defeated-area.test.js prüfen außerdem Paketversion und Gegnerdarstellung. Die Schritte für die Live-Abnahme der neuen Übersicht stehen in PLAYER-OVERVIEW.md.
 
 # Gemeinsamer Test: Combat Wall 1.1.2 und GM Combat Workspace 0.15.0
 

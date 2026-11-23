@@ -1,10 +1,14 @@
-# Combat Wall 1.1.5
+# Combat Wall 1.1.6
+
+## Spielerportraits bleiben in Farbe
+
+Unbenutzte Trefferpunkte eines Placeholder-Actors lösen keinen automatischen Besiegt-Status mehr aus. Spielerportraits bleiben in Übersicht, Zugleiste und Fokus farbig; die automatische HP-Auswertung und graue Besiegt-Darstellung gelten weiterhin für Gegner.
 
 ## Spieler & Zustände – dauerhaft rechts oben
 
 Alle sichtbaren Spieler und Initiative-Placeholder des Encounters stehen jetzt mit Portrait, Namen und Zustand in einer eigenen Übersicht rechts oben. Die Übersicht bleibt auch während Gegnerzügen sichtbar und aktualisiert sich ohne Zugwechsel. Sie umfasst alle Spieler unabhängig vom Platz in der Zugleiste; der Bereich passt Höhe und Darstellung an und benötigt keinen Scrollbalken.
 
-Zustände, Verursacher und Gegenanzeigen werden im GM Combat Workspace 0.16.3 bearbeitet und live angezeigt. Dort ist Pyro jetzt als Spieler-Placeholder in der Encounter-Vorbereitung vorgewählt. Seine Initiative eingeben und bestätigen, damit er dem Encounter hinzugefügt wird. Vorhandene Pyro-Einträge werden wiederverwendet. „Keine Zustände“ kennzeichnet Spieler ohne Status. Verborgene Spieler bleiben ausgeblendet; besiegte Spieler bleiben sichtbar.
+Zustände, Verursacher und Gegenanzeigen werden im GM Combat Workspace 0.16.4 bearbeitet und live angezeigt. Die Encounter-Vorbereitung enthält direkt alle sechs Spieler: Orsik, Nova Schaltkreis, Ray, Lichtwölkchen, Zane und Pyro. Initiativewerte eingeben und bestätigen; vorhandene Teilnehmer und bekannte Aliasnamen werden wiederverwendet. „Keine Zustände“ kennzeichnet Spieler ohne Status. Verborgene Spieler bleiben ausgeblendet; besiegte Spieler bleiben sichtbar.
 
 Die Korrekturen aus 1.1.3 bleiben enthalten: Ziggs heißt in der Wall Ray, vollständiges Fokusportrait, Namenszeile unter dem Bild und klare Trennung zwischen Spieler-Placeholdern und Gegnerkacheln. Details und Testschritte in PLAYER-OVERVIEW.md.
 

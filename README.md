@@ -1,4 +1,10 @@
-# Combat Wall 1.1.6
+# Combat Wall 1.1.7
+
+## Deutsche Zustände, saubere Symbole und gemeinsame Markerfarben
+
+Die nativen Zustandsnamen werden vollständig deutsch angezeigt, einschließlich Fallend, Deckung, Versteckt, Schwebend und der weiteren Systemzustände. Fehlende oder defekte Zustandsbilder werden weggelassen; sie erhalten kein Portrait-Ersatzsymbol.
+
+GM Combat Workspace 0.16.5 übernimmt die tatsächlichen Combat-Wall-Farben je Kampfteilnehmer für Minimap, Gegnerzeilen und Kartenmarkierungen. Diese Zuordnung wird bei Änderungen aktualisiert und zwischen Hauptfenster und GM-Dashboard abgeglichen. Details in PLAYER-OVERVIEW.md.
 
 ## Spielerportraits bleiben in Farbe
 

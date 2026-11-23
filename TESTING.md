@@ -1,6 +1,6 @@
-# Aktuelle Ergänzung 1.1.6
+# Aktuelle Ergänzung 1.1.7
 
-Die aktuelle automatisierte Prüfung steht in .github/workflows/validate.yml. Die Tests conditions-1.1.6.test.js und placeholder-1.1.6.test.js prüfen 49 Fälle; version-1.1.6.test.js und defeated-area.test.js prüfen außerdem Paketversion und Gegnerdarstellung. Die Schritte für die Live-Abnahme der neuen Übersicht stehen in PLAYER-OVERVIEW.md.
+Die aktuelle automatisierte Prüfung steht in .github/workflows/validate.yml. conditions-1.1.7.test.js, placeholder-1.1.7.test.js und localization-icons-markers-1.1.7.test.js prüfen zusammen 54 Fälle; dazu kommen Versions- und Gegnerdarstellungsprüfungen. PLAYER-OVERVIEW.md beschreibt die gemeinsame Live-Abnahme der deutschen Zustände, fehlenden Symbole und Markerfarben mit GM Combat Workspace 0.16.5.
 
 # Gemeinsamer Test: Combat Wall 1.1.2 und GM Combat Workspace 0.15.0
 

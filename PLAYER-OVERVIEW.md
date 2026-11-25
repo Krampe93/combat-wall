@@ -1,29 +1,21 @@
-# Combat Wall 1.1.7 und GM Combat Workspace 0.16.5
+# Combat Wall 1.1.8 – eigene Farbe für jeden Gegner
 
-## Änderungen
+Jeder einzelne Gegner erhält jetzt eine eigene Farbe für den gesamten Encounter. Die Farbauswahl beginnt nicht mehr bei jeder Gruppe von vorn: Drache 1 und Drache 2 haben unterschiedliche Farben, und die übrigen Gegner erhalten ebenfalls jeweils eine andere Farbe.
 
-- Alle nativen D&D5e-Zustände und Statusoptionen erscheinen deutsch in der Zustandsauswahl, Spielerübersicht, Fokusanzeige und den verknüpften Quellenanzeigen. Dazu gehören die bisher englischen Einträge Fallend, Halbe Deckung, Versteckt, Schwebend, Mangelernährt, Markiert, Verstummt, Schlafend, Stabil, Erstickend, Überrascht, Dreivierteldeckung, Volle Deckung und Verwandelt.
-- Interne Zustands-IDs, Foundry-Mechanik und eigene gespeicherte Namen bleiben erhalten. Englische Namen von Actors und deren Aktionen sind Inhalte der Welt und werden nicht automatisch umbenannt.
-- Weitere eigene Bedienbeschriftungen sind deutsch: Zug beenden, Werteblock, Platzhalter, Aufladen sowie die Rettungswurf-Kürzel ST, GE, KO, INT, WE und CHA.
-- Fehlt ein Zustandsbild, bleibt die Anzeige textbasiert. Das goldene Portrait-Ersatzsymbol wird für Zustände nicht mehr verwendet. Generische Aura-/Mystery-Man-Symbole und das Combat-Wall-Ersatzbild werden verworfen. Kann ein angegebenes Zustandsbild nicht geladen werden, wird nur das Bild entfernt. Vorhandene echte Zustandsbilder bleiben nutzbar; Portraits behalten ihre bisherige Ersatzbildfunktion.
-- Combat Wall ist jetzt die gemeinsame Quelle der Markerfarben. Die Minimap, Gegnerzeilen und Kartenmarkierungen des GM-Workspaces übernehmen denselben Farbwert für denselben Kampfteilnehmer. Der Wert folgt der stabilen Gruppenzuordnung, statt separat nach der GM-Listenreihenfolge berechnet zu werden. Die gleichen Farben können wie bisher in verschiedenen Gegnergruppen vorkommen.
-- Farbänderungen werden vom Hauptfenster an das GM-Dashboard weitergegeben. Veraltete Farben aus einem anderen Encounter, einer anderen Szene oder einem entfernten Eintrag werden zurückgewiesen. Ohne aktive Combat Wall bleibt die bisherige GM-Farbzuordnung verfügbar.
-- Vollständige Spieler-Vorgaben, Pyro, Ray-Alias, Orsik in Farbe, Fokusbilder und Übersicht ohne Scrollbalken bleiben erhalten.
+Die Zuordnung gehört zum Kampfteilnehmer und wird am Encounter gespeichert. Sie bleibt bei Zugwechseln, geänderter Initiative, Bewegung, Umgruppierung, Sichtbarkeitsänderungen und beim Hinzufügen oder Entfernen anderer Gegner erhalten. Auch bei mehr als acht Gegnern werden die ersten acht Farben nicht einfach wiederholt. Verborgene und besiegte Gegner behalten ihren Farbplatz.
 
-## Kurzer Test in Foundry
+GM Combat Workspace 0.16.5 übernimmt diese Zuordnung bereits über die bestehende Schnittstelle. Dadurch stimmen Spieleranzeige, GM-Minimap und Kartenmarkierungen für denselben Gegner weiter überein. Für den GM-Workspace ist kein neues Release erforderlich.
 
-1. Beide Module aktualisieren und Foundry-Hauptfenster sowie Dashboard-Fenster neu laden: Combat Wall 1.1.7, GM Combat Workspace 0.16.5.
-2. Zustandseditor öffnen. Die zuvor englischen Optionen müssen deutsch erscheinen. „Fallend“ auf einem Spieler-Placeholder setzen: ohne echtes Bild darf kein goldenes Ersatzsymbol erscheinen.
-3. Weitere Zustände mit und ohne Bild prüfen. Ein defekter Bildpfad darf keine kaputte Grafik oder Portrait-Ersatzgrafik hinterlassen. Quellenwechsel und Entfernen weiterhin live prüfen.
-4. Zwei gleiche Gegner und einen weiteren Gegnertyp im Encounter verwenden. Für jeden Token den Punkt auf der GM-Minimap mit dem Marker auf seiner Combat-Wall-Kachel vergleichen: der Farbwert muss übereinstimmen.
-5. Zug wechseln, Gegner hinzufügen/entfernen und die Gruppen-Zuordnung aktualisieren. Beide Anzeigen müssen dieselben aktuellen Farben verwenden. Nach Encounter-/Szenenwechsel dürfen keine alten Farben übernommen werden.
+Die bestehenden Spieler-Platzhalter, deutschen Zustände, fehlenden Zustandssymbole, Farbdarstellung von Orsik, Fokusbilder und Übersicht ohne Scrollbalken bleiben enthalten.
 
-## Ausgeführte Prüfung
+## Installation und kurzer Test
 
-- 206 GM-Tests und Modulvalidierung erfolgreich, einschließlich aller nativen Statusnamen, ursprünglicher IDs, Aliasformen, Quellenanzeigen, optionaler Farbschnittstelle und Encounter-/Szenengrenzen.
-- 54 aktuelle Combat-Wall-Tests plus Syntax-, Versions- und Gegnerdarstellungsprüfungen erfolgreich. Abgedeckt sind deutsche Statusnamen, camelCase-IDs, fehlende/generische Icons, echte Bildpfade, exakte gruppenbezogene Markerfarben, Reihenfolgewechsel, Sichtbarkeit und die bestehende Orsik-/Spielerlogik.
-- Gemeinsamer Browsertest mit produktiven Dateien: „Fallend“, „Halbe Deckung“, „Brennend“, „Vergiftet“; kein Symbol bei fehlenden/generischen/defekten Bildern, funktionierendes echtes Bild bleibt. Portrait-Ersatzbild weiterhin geprüft.
-- Minimap mit echter Zeichenroutine gerendert: Die gemessenen Punkt-Pixel stimmen mit den durch Combat Wall veröffentlichten Farben und den CSS-Markerfarben der Wall überein; mehrere Gegnergruppen und die absichtliche Farb-Wiederverwendung wurden geprüft.
-- Vorherige gemeinsame Spieler-, Initiative-, Zustands-, Layout- und Live-Aktualisierungstests weiterhin erfolgreich. Die direkte Gegenprobe in der laufenden Foundry-Welt steht noch aus.
+1. Combat Wall auf 1.1.8 aktualisieren. GM Combat Workspace 0.16.5 verwenden.
+2. Foundry-Hauptfenster neu laden und die beiden Dashboard-Fenster schließen und neu öffnen.
+3. Einen Encounter mit zwei Drachen und mehreren anderen Gegnern verwenden: jeder einzelne Gegner muss eine andere Farbe haben. Den jeweiligen Marker in der Wall mit seinem Punkt auf der GM-Minimap vergleichen.
+4. Initiative/Zug wechseln, Gegner bewegen oder umgruppieren und einen weiteren Gegner hinzufügen: die vorhandenen Farben müssen unverändert bleiben.
+5. Foundry neu laden: dieselben Kampfteilnehmer müssen dieselben gespeicherten Farben behalten.
 
-Die vollständige Liste nativer Status-IDs wurde gegen die [D&D5e-Konfiguration 5.3.2](https://github.com/foundryvtt/dnd5e/blob/release-5.3.2/module/config.mjs) geprüft.
+## Prüfung
+
+63 automatisierte Zustands-, Spieler- und Farbtests sowie Syntax-, Versions- und Gegnerdarstellungsprüfungen bestanden. Die Farbprüfung umfasst mehrere Gruppen, zwei gleiche Gegner, 40 und 64 Gegner, stabile Zuordnung und Speicherung über einen neuen Laufzeitkontext hinweg. Der gemeinsame Browsertest vergleicht echte Minimap-Pixel mit den Markerfarben der Combat Wall und prüft, dass alle Farben innerhalb des Encounters unterschiedlich sind. Die direkte Gegenprobe in der laufenden Foundry-Welt steht noch aus.

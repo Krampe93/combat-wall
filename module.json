@@ -8,7 +8,7 @@
       "name": "Krampe & OpenAI"
     }
   ],
-  "version": "1.1.7",
+  "version": "1.1.8",
   "compatibility": {
     "minimum": "14",
     "verified": "14",
@@ -35,14 +35,14 @@
     ]
   },
   "esmodules": [
-    "scripts/main-1.1.7.js"
+    "scripts/main-1.1.8.js"
   ],
   "styles": [
     "styles/module.css"
   ],
   "url": "https://github.com/Krampe93/combat-wall",
   "manifest": "https://raw.githubusercontent.com/Krampe93/combat-wall/main/module.json",
-  "download": "https://github.com/Krampe93/combat-wall/releases/download/v1.1.7/combat-wall-1.1.7.zip",
+  "download": "https://github.com/Krampe93/combat-wall/releases/download/v1.1.8/combat-wall-1.1.8.zip",
   "readme": "README.md",
   "license": "LICENSE"
 }

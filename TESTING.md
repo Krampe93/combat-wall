@@ -1,6 +1,6 @@
-# Aktuelle Ergänzung 1.1.7
+# Aktuelle Ergänzung 1.1.8
 
-Die aktuelle automatisierte Prüfung steht in .github/workflows/validate.yml. conditions-1.1.7.test.js, placeholder-1.1.7.test.js und localization-icons-markers-1.1.7.test.js prüfen zusammen 54 Fälle; dazu kommen Versions- und Gegnerdarstellungsprüfungen. PLAYER-OVERVIEW.md beschreibt die gemeinsame Live-Abnahme der deutschen Zustände, fehlenden Symbole und Markerfarben mit GM Combat Workspace 0.16.5.
+Die aktuellen Prüfungen stehen in .github/workflows/validate.yml. Neben Zuständen und Spieleranzeigen prüft unique-colors-1.1.8.test.js die encounterweite individuelle Farbzuordnung, mehrere Gruppen, größere Gegnerzahlen und stabile gespeicherte Farben. PLAYER-OVERVIEW.md beschreibt den Test mit Combat Wall 1.1.8 und GM Combat Workspace 0.16.5.
 
 # Gemeinsamer Test: Combat Wall 1.1.2 und GM Combat Workspace 0.15.0
 

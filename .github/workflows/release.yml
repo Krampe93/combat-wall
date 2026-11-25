@@ -21,12 +21,13 @@ jobs:
 
       - name: Validate release
         run: |
-          node --check scripts/main-1.1.7.js
-          node --check dashboard/dashboard-1.1.7.js
-          node --test tests/conditions-1.1.7.test.js
-          node --test tests/localization-icons-markers-1.1.7.test.js
-          node --test tests/placeholder-1.1.7.test.js
-          node tests/version-1.1.7.test.js
+          node --check scripts/main-1.1.8.js
+          node --check dashboard/dashboard-1.1.8.js
+          node --test tests/conditions-1.1.8.test.js
+          node --test tests/localization-icons-markers-1.1.8.test.js
+          node --test tests/unique-colors-1.1.8.test.js
+          node --test tests/placeholder-1.1.8.test.js
+          node tests/version-1.1.8.test.js
           node tests/defeated-area.test.js
           node -e 'const m=require("./module.json"); if (`v${m.version}` !== process.env.GITHUB_REF_NAME) process.exit(1)'
 

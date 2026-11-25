@@ -1,4 +1,10 @@
-# Combat Wall 1.1.7
+# Combat Wall 1.1.8
+
+## Eigene Farbe für jeden Gegner
+
+Jeder einzelne Gegner erhält eine eigene, am Encounter gespeicherte Farbe. Die Zuordnung gilt über alle Gruppen hinweg, sodass auch Drache 1, Drache 2 und die Gegner anderer Gruppen verschiedene Farben haben. Sie bleibt bei Zugwechsel, Bewegung, Umgruppierung und dem Hinzufügen/Entfernen anderer Gegner erhalten. Mehr als acht Gegner führen nicht zu einer Wiederholung der ersten acht Farben.
+
+GM Combat Workspace 0.16.5 übernimmt dieselbe Zuordnung für Minimap, Gegnerzeilen und Kartenmarkierungen. Nur Combat Wall benötigt dieses neue Update. Details und Testschritte in PLAYER-OVERVIEW.md.
 
 ## Deutsche Zustände, saubere Symbole und gemeinsame Markerfarben
 
